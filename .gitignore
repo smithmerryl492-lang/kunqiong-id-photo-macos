@@ -1,0 +1,11 @@
+.venv/
+.codex/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+app_error.log
+*.log
+dist/
+build/
+Thumbs.db
