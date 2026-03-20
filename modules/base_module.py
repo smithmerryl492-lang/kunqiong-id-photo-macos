@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 from PyQt6.QtWidgets import QWidget
 import os
+from i18n import tr
 
 
 class BaseModule(ABC):
@@ -48,10 +49,17 @@ class BaseModule(ABC):
         return self.name
 
     def get_description(self) -> str:
+        if hasattr(self, "description_key"):
+            return tr(self.description_key)
         return self.description
 
     def get_icon(self) -> str:
         return self.icon
 
     def get_system_requirements(self) -> dict:
-        return {'min_cpu': '4核心', 'min_ram': '8GB', 'rec_cpu': '8核心', 'rec_ram': '16GB'}
+        return {
+            'min_cpu': tr('preview.cpu_cores', count=4),
+            'min_ram': tr('preview.memory_gb', count=8),
+            'rec_cpu': tr('preview.cpu_cores', count=8),
+            'rec_ram': tr('preview.memory_gb', count=16),
+        }

@@ -6,6 +6,8 @@ import warnings
 import traceback
 import logging
 from datetime import datetime
+from i18n import initialize_i18n, tr
+from utils.config import get_saved_locale
 
 # 全局未捕获异常写入统一错误日志
 def _excepthook(etype, value, tb):
@@ -63,10 +65,15 @@ logger = logging.getLogger(__name__)
 
 def main():
     try:
+        # Preload onnxruntime before Qt. In this app, importing Qt first can
+        # make the later onnxruntime DLL initialization fail on some Windows setups.
+        import onnxruntime  # noqa: F401
+
         from PyQt6.QtWidgets import QApplication, QMessageBox
         from PyQt6.QtCore import Qt
         from PyQt6.QtGui import QColor
 
+        initialize_i18n(get_saved_locale())
         logger.info("初始化 QApplication...")
         app = QApplication(sys.argv)
 
@@ -84,8 +91,8 @@ def main():
                     pass
                 raise
 
-        MainWindow = load_module("正在初始化界面", lambda: __import__('ui.main_window', fromlist=['MainWindow']).MainWindow)
-        IDPhotoModule = load_module("正在加载AI证件照模型", lambda: __import__('modules.id_photo', fromlist=['IDPhotoModule']).IDPhotoModule)
+        MainWindow = load_module(tr("startup.init_ui"), lambda: __import__('ui.main_window', fromlist=['MainWindow']).MainWindow)
+        IDPhotoModule = load_module(tr("startup.load_model"), lambda: __import__('modules.id_photo', fromlist=['IDPhotoModule']).IDPhotoModule)
 
         modules = [IDPhotoModule()]
         window = MainWindow(modules)
@@ -99,7 +106,11 @@ def main():
             from utils.error_log import log_error, get_error_log_tip
             log_error(str(e), sys.exc_info(), location="main.main")
             from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.critical(None, "启动失败", f"程序启动失败:\n{e}\n\n{get_error_log_tip()}")
+            QMessageBox.critical(
+                None,
+                tr("startup.failed_title"),
+                tr("startup.failed_message", error=e, tip=get_error_log_tip()),
+            )
         except Exception:
             pass
         raise

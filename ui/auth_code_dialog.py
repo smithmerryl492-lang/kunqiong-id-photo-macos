@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer, QEvent
 from PyQt6.QtGui import QFont, QPixmap
+from i18n import tr
 
 
 class AuthCodeDialog(QDialog):
@@ -20,7 +21,7 @@ class AuthCodeDialog(QDialog):
     
     def init_ui(self):
         """初始化界面"""
-        self.setWindowTitle("授权码验证")
+        self.setWindowTitle(tr("auth.dialog.title"))
         
         # 【终极方案】彻底禁用调整大小 + 去除最大化/最小化按钮
         # 1. 设置窗口标志：只保留关闭按钮，去除最大化和最小化
@@ -170,7 +171,7 @@ class AuthCodeDialog(QDialog):
         title_layout.addWidget(icon_label)
         
         # 标题文字
-        title = QLabel("鲲穹AI工具箱・软件授权验证")
+        title = QLabel(tr("auth.dialog.header"))
         title.setObjectName("title")
         title.setFont(QFont("Microsoft YaHei", 18, QFont.Weight.Bold))
         title.setStyleSheet("background: transparent;")
@@ -179,7 +180,7 @@ class AuthCodeDialog(QDialog):
         layout.addWidget(title_container)
         
         # 提示信息
-        hint = QLabel("您当前安装的工具为鲲穹AI工具箱生态应用，需通过工具箱授权码完成激活，以启用完整功能")
+        hint = QLabel(tr("auth.dialog.hint"))
         hint.setObjectName("hint")
         hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
         hint.setWordWrap(True)  # 允许自动换行
@@ -187,7 +188,7 @@ class AuthCodeDialog(QDialog):
         
         # 输入框
         self.code_input = QLineEdit()
-        self.code_input.setPlaceholderText("请输入鲲穹AI工具箱授权码")
+        self.code_input.setPlaceholderText(tr("auth.dialog.placeholder"))
         self.code_input.returnPressed.connect(self.on_confirm)
         layout.addWidget(self.code_input)
         
@@ -198,7 +199,7 @@ class AuthCodeDialog(QDialog):
         get_code_layout.setContentsMargins(0, 0, 0, 0)
         get_code_layout.setSpacing(0)
         
-        self.btn_get_code = QPushButton("📝 没有授权码？点此获取")
+        self.btn_get_code = QPushButton("?? " + tr("auth.dialog.get_code"))
         self.btn_get_code.setObjectName("btn_get_code")
         self.btn_get_code.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_get_code.clicked.connect(self.on_get_code)
@@ -217,13 +218,13 @@ class AuthCodeDialog(QDialog):
         button_layout.setContentsMargins(0, 0, 0, 0)
         button_layout.setSpacing(12)
         
-        btn_cancel = QPushButton("✕ 取消")
+        btn_cancel = QPushButton("? " + tr("common.cancel"))
         btn_cancel.clicked.connect(self.reject)
         button_layout.addWidget(btn_cancel)
         
         button_layout.addStretch()
         
-        self.btn_confirm = QPushButton("✓ 验证并激活")
+        self.btn_confirm = QPushButton("? " + tr("auth.dialog.confirm"))
         self.btn_confirm.setObjectName("btn_confirm")
         self.btn_confirm.clicked.connect(self.on_confirm)
         button_layout.addWidget(self.btn_confirm)
@@ -244,7 +245,7 @@ class AuthCodeDialog(QDialog):
         code = self.code_input.text().strip()
         if not code:
             from ui.custom_widgets import StyledMessageBox
-            StyledMessageBox.warning(self, "提示", "请输入授权码")
+            StyledMessageBox.warning(self, tr("common.tip"), tr("auth.dialog.empty_code"))
             return
         
         self.auth_code = code

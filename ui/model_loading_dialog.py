@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel
 from PyQt6.QtGui import QPainter, QColor, QPen, QFont
 import math
+from i18n import tr
 
 
 class ModelLoadingDialog(QDialog):
@@ -10,7 +11,7 @@ class ModelLoadingDialog(QDialog):
     
     def __init__(self, module_name="AI", parent=None):
         super().__init__(parent)
-        self.setWindowTitle("加载中")
+        self.setWindowTitle(tr("dialog.loading.title"))
         self.setModal(True)
         self.setFixedSize(400, 200)
         # 无边框、半透明背景
@@ -46,13 +47,13 @@ class ModelLoadingDialog(QDialog):
         painter.setPen(QColor(226, 232, 240))
         title_font = QFont("Microsoft YaHei", 14, QFont.Weight.Bold)
         painter.setFont(title_font)
-        painter.drawText(0, 50, w, 30, Qt.AlignmentFlag.AlignCenter, "请稍后")
+        painter.drawText(0, 50, w, 30, Qt.AlignmentFlag.AlignCenter, tr("dialog.loading.please_wait"))
         
         # 绘制模块名称
         painter.setPen(QColor(160, 174, 192))
         msg_font = QFont("Microsoft YaHei", 11)
         painter.setFont(msg_font)
-        painter.drawText(0, 75, w, 25, Qt.AlignmentFlag.AlignCenter, f"{self.module_name}大模型加载中...")
+        painter.drawText(0, 75, w, 25, Qt.AlignmentFlag.AlignCenter, tr("dialog.loading.module", module_name=self.module_name))
         
         # 绘制旋转的圆圈（转圈圈动画）
         center_x = w // 2

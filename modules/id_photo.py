@@ -8,6 +8,7 @@ from utils.config import _get_resource_path, get_hivision_modnet_onnx_path
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QSlider, QPushButton
 from PyQt6.QtCore import Qt, QTimer
 from ui.custom_widgets import StyledComboBox
+from i18n import tr
 
 # 模块级缓存，避免重复导入
 _rembg_module = None
@@ -92,6 +93,7 @@ class IDPhotoModule(BaseModule):
             description="自动抠图、更换背景颜色、生成标准证件照（符合中国标准）",
             icon="🪪"
         )
+        self.description_key = "module.id_photo.description"
         
         # 初始化美颜参数（必须在构造函数中初始化）
         self.beauty_params = {
@@ -165,33 +167,64 @@ class IDPhotoModule(BaseModule):
         # 打印排版参数
         self.print_params = {
             'enabled': False,               # 是否启用打印排版
-            'paper_size': '六寸',          # 相纸选择：六寸/五寸/A4/3R/4R
+            'paper_size': '6inch',         # 相纸选择：6inch/5inch/A4/3R/4R
         }
         # 相纸尺寸（像素）- 注意：这里只是UI显示用的，实际排版使用create_print_layout中的定义
         self.paper_sizes = {
-            '六寸': (1795, 2398),       # 6寸 = 6R = 152×203mm (竖向)
-            '五寸': (1500, 2100),       # 5寸 = 5R = 127×178mm
+            '6inch': (1795, 2398),      # 6寸 = 6R = 152×203mm (竖向)
+            '5inch': (1500, 2100),      # 5寸 = 5R = 127×178mm
             'A4': (2480, 3508),         # A4 = 210×297mm
             '3R': (1050, 1500),         # 3R = 3.5×5 inch = 89×127mm
             '4R': (1205, 1795),         # 4R = 4×6 inch = 102×152mm (横向，与六寸不同)
         }
+        self.paper_size_options = [
+            ("id_photo.paper_6inch", "6inch"),
+            ("id_photo.paper_5inch", "5inch"),
+            ("id_photo.paper_a4", "A4"),
+            ("id_photo.paper_3r", "3R"),
+            ("id_photo.paper_4r", "4R"),
+        ]
         # 背景颜色选项 (BGR格式，OpenCV使用BGR)
         # 常用证件照背景色标准
         self.bg_colors = {
-            '白色': (255, 255, 255),           # 护照、身份证、教师资格证等
-            '蓝色': (219, 142, 67),             # 标准证件照蓝色 RGB(67,142,219)
-            '浅蓝色': (235, 180, 120),          # 淡蓝色 RGB(120,180,235)
-            '深蓝色': (180, 100, 50),           # 深蓝色 RGB(50,100,180)
-            '红色': (67, 67, 219),               # 标准证件照红色 RGB(219,67,67)
-            '深红色': (60, 60, 180),             # 深红色 RGB(180,60,60)
-            '灰色': (200, 200, 200),             # 浅灰色
+            'white': (255, 255, 255),          # 护照、身份证、教师资格证等
+            'blue': (219, 142, 67),            # 标准证件照蓝色 RGB(67,142,219)
+            'light_blue': (235, 180, 120),     # 淡蓝色 RGB(120,180,235)
+            'dark_blue': (180, 100, 50),       # 深蓝色 RGB(50,100,180)
+            'red': (67, 67, 219),              # 标准证件照红色 RGB(219,67,67)
+            'dark_red': (60, 60, 180),         # 深红色 RGB(180,60,60)
+            'gray': (200, 200, 200),           # 浅灰色
         }
+        self.bg_color_options = [
+            ("id_photo.bg_white", "white"),
+            ("id_photo.bg_blue", "blue"),
+            ("id_photo.bg_light_blue", "light_blue"),
+            ("id_photo.bg_dark_blue", "dark_blue"),
+            ("id_photo.bg_red", "red"),
+            ("id_photo.bg_dark_red", "dark_red"),
+            ("id_photo.bg_gray", "gray"),
+        ]
         
         # 自定义颜色缓存
         self.custom_color = (255, 255, 255)  # 默认白色
         
         # 渲染模式
         self.render_mode = 'pure_color'  # 'pure_color', 'updown_gradient', 'center_gradient'
+        self.mode_options = [
+            ("id_photo.mode_size_list", "size_list"),
+            ("id_photo.mode_only_change_bg", "only_change_bg"),
+            ("id_photo.mode_custom_px", "custom_px"),
+            ("id_photo.mode_custom_mm", "custom_mm"),
+        ]
+        self.render_options = [
+            ("id_photo.render_pure_color", "pure_color"),
+            ("id_photo.render_updown_gradient", "updown_gradient"),
+            ("id_photo.render_center_gradient", "center_gradient"),
+        ]
+        self.face_detect_options = [
+            ("id_photo.face_detect_fast", "mtcnn"),
+            ("id_photo.face_detect_high_accuracy", "retinaface"),
+        ]
         # 标准尺寸选项 (宽x高，单位像素，300dpi 除非特别标注)
         # 格式说明：一寸 25×35mm = 295×413px @300dpi
         # 
@@ -209,53 +242,42 @@ class IDPhotoModule(BaseModule):
         # - 智能化：无需用户手动调整
         # - 精准：基于标准和实际照片特征
         # 
-        self.sizes = {
-            # 格式：名称: (宽, 高)
-            # 注意：不再预设 crop_params，由智能算法自动计算
-            # 顺序：最常用的放在前面
-            
-            # ===== 最常用 =====
-            '一寸 (25×35mm)': (295, 413),
-            '二寸 (35×49mm)': (413, 579),
-            '身份证 (26×32mm)': (358, 441),      # @350dpi, 露出锁骨
-            '不裁剪': (None, None),
-            
-            # ===== 常用尺寸 =====
-            '小一寸 (22×32mm)': (260, 378),
-            '小二寸 (35×45mm)': (413, 531),
-            '大一寸 (33×48mm)': (390, 567),
-            '大二寸 (35×53mm)': (413, 626),
-            
-            # ===== 身份证件 =====
-            '社保卡 (26×32mm)': (358, 441),      # 同身份证
-            '驾驶证 (22×32mm)': (260, 378),
-            '电子驾驶证 (22×32mm)': (260, 378),
-            
-            # ===== 护照/签证（常用） =====
-            '中国护照 (33×48mm)': (390, 567),     # 头長28-33mm，头顶距离3-5mm
-            '美国签证 (51×51mm)': (600, 600),     # 2x2英寸，头占比50%-70%
-            '日本签证 (35×45mm)': (413, 531),     # 头占比70%
-            '韩国签证 (35×45mm)': (413, 531),     # 头镲32-36mm
-            
-            # ===== 考试证件（常用） =====
-            '教师资格证 (25×35mm)': (295, 413),   # 一寸
-            '国家公务员考试 (25×35mm)': (295, 413),  # 一寸
-            '研究生考试 (33×48mm)': (390, 567),  # 大一寸
-            '初级会计考试 (25×35mm)': (295, 413),
-            '英语四六级考试 (144×192px)': (144, 192),  # 特殊尺寸
-            '计算机等级考试 (144×192px)': (144, 192),  # 头占比70%
-            
-            # ===== 其他尺寸 =====
-            '五寸 (89×127mm)': (1050, 1499),
-        }
+        self.size_definitions = [
+            ("one_inch", "id_photo.size_one_inch", "一寸 (25×35mm)", (295, 413), "large_head"),
+            ("two_inch", "id_photo.size_two_inch", "二寸 (35×49mm)", (413, 579), "large_head"),
+            ("id_card", "id_photo.size_id_card", "身份证 (26×32mm)", (358, 441), "id_card"),
+            ("no_crop", "id_photo.size_no_crop", "不裁剪", (None, None), "no_crop"),
+            ("small_one_inch", "id_photo.size_small_one_inch", "小一寸 (22×32mm)", (260, 378), "large_head"),
+            ("small_two_inch", "id_photo.size_small_two_inch", "小二寸 (35×45mm)", (413, 531), "large_head"),
+            ("large_one_inch", "id_photo.size_large_one_inch", "大一寸 (33×48mm)", (390, 567), "large_head"),
+            ("large_two_inch", "id_photo.size_large_two_inch", "大二寸 (35×53mm)", (413, 626), "large_head"),
+            ("social_security_card", "id_photo.size_social_security_card", "社保卡 (26×32mm)", (358, 441), "id_card"),
+            ("driver_license", "id_photo.size_driver_license", "驾驶证 (22×32mm)", (260, 378), "driver_license"),
+            ("electronic_driver_license", "id_photo.size_electronic_driver_license", "电子驾驶证 (22×32mm)", (260, 378), "driver_license"),
+            ("china_passport", "id_photo.size_china_passport", "中国护照 (33×48mm)", (390, 567), "passport"),
+            ("us_visa", "id_photo.size_us_visa", "美国签证 (51×51mm)", (600, 600), "us_visa"),
+            ("japan_visa", "id_photo.size_japan_visa", "日本签证 (35×45mm)", (413, 531), "jp_kr_visa"),
+            ("korea_visa", "id_photo.size_korea_visa", "韩国签证 (35×45mm)", (413, 531), "jp_kr_visa"),
+            ("teacher_certificate", "id_photo.size_teacher_certificate", "教师资格证 (25×35mm)", (295, 413), "large_head"),
+            ("civil_service_exam", "id_photo.size_civil_service_exam", "国家公务员考试 (25×35mm)", (295, 413), "large_head"),
+            ("graduate_exam", "id_photo.size_graduate_exam", "研究生考试 (33×48mm)", (390, 567), "exam_large_head"),
+            ("junior_accounting_exam", "id_photo.size_junior_accounting_exam", "初级会计考试 (25×35mm)", (295, 413), "large_head"),
+            ("cet_exam", "id_photo.size_cet_exam", "英语四六级考试 (144×192px)", (144, 192), "exam_large_head"),
+            ("computer_exam", "id_photo.size_computer_exam", "计算机等级考试 (144×192px)", (144, 192), "exam_large_head"),
+            ("five_inch", "id_photo.size_five_inch", "五寸 (89×127mm)", (1050, 1499), "default"),
+        ]
+        self.sizes = {size_key: dimensions for size_key, _label_key, _legacy_name, dimensions, _category in self.size_definitions}
+        self.size_options = [(label_key, size_key) for size_key, label_key, _legacy_name, _dimensions, _category in self.size_definitions]
+        self.size_legacy_names = {legacy_name: size_key for size_key, _label_key, legacy_name, _dimensions, _category in self.size_definitions}
+        self.size_categories = {size_key: category for size_key, _label_key, _legacy_name, _dimensions, category in self.size_definitions}
     
     def get_system_requirements(self) -> dict:
         """获取系统配置要求"""
         return {
-            'min_cpu': '4核心',
-            'min_ram': '8GB',
-            'rec_cpu': '8核心',
-            'rec_ram': '12GB'
+            'min_cpu': tr('preview.cpu_cores', count=4),
+            'min_ram': tr('preview.memory_gb', count=8),
+            'rec_cpu': tr('preview.cpu_cores', count=8),
+            'rec_ram': tr('preview.memory_gb', count=12)
         }
     
     def load_model(self):
@@ -281,7 +303,7 @@ class IDPhotoModule(BaseModule):
             except ImportError:
                 raise ImportError("请安装 rembg 库: pip install rembg")
     
-    def process(self, image_path: str, bg_color: str = '白色', size: str = '不裁剪', 
+    def process(self, image_path: str, bg_color: str = 'white', size: str = 'no_crop', 
                 whitening: int = 0, brightness: int = 0, contrast: int = 0, 
                 saturation: int = 0, sharpen: int = 0, 
                 mode: str = None, render_mode: str = None, 
@@ -317,16 +339,13 @@ class IDPhotoModule(BaseModule):
         
         # 应用传入的参数
         if mode:
-            # 将中文模式文本转换为英文标识符
-            mode_map = {
-                "尺寸列表": 'size_list',
-                "只换底": 'only_change_bg',
-                "自定义(px)": 'custom_px',
-                "自定义(mm)": 'custom_mm',
-            }
-            self.mode = mode_map.get(mode, mode)  # 如果已经是英文标识符，则直接使用
+            self.mode = self._normalize_mode_value(mode)
         if render_mode:
-            self.render_mode = render_mode
+            self.render_mode = self._normalize_render_mode_value(render_mode)
+        if isinstance(bg_color, str):
+            bg_color = self._normalize_bg_color_value(bg_color)
+        if isinstance(size, str):
+            size = self._normalize_size_value(size)
         if custom_color:
             self.custom_color = custom_color
         if advanced_params:
@@ -522,7 +541,7 @@ class IDPhotoModule(BaseModule):
             img_rgba = self._smart_crop_for_id_photo(img_rgba, target_size, person_bounds, (orig_w, orig_h), crop_params)
         
         # 3. 获取目标背景色（用于颜色去污）
-        bg_name = bg_color if isinstance(bg_color, str) else '白色'
+        bg_name = bg_color if isinstance(bg_color, str) else 'white'
         target_bg = self.bg_colors.get(bg_name, (255, 255, 255))
         
         # 处理渐变色情况（使用起始色）
@@ -776,7 +795,115 @@ class IDPhotoModule(BaseModule):
             background[:, :, c] = (alpha * rgb[:, :, c] + (1 - alpha) * background[:, :, c]).astype(np.uint8)
         
         return background
-    
+
+    def _normalize_mode_value(self, mode):
+        aliases = {
+            "尺寸列表": "size_list",
+            "只换底": "only_change_bg",
+            "自定义(px)": "custom_px",
+            "自定义(mm)": "custom_mm",
+            "size_list": "size_list",
+            "only_change_bg": "only_change_bg",
+            "custom_px": "custom_px",
+            "custom_mm": "custom_mm",
+        }
+        return aliases.get(mode, "size_list")
+
+    def _normalize_render_mode_value(self, render_mode):
+        aliases = {
+            "纯色": "pure_color",
+            "上下渐变（白色）": "updown_gradient",
+            "中心渐变（白色）": "center_gradient",
+            "pure_color": "pure_color",
+            "updown_gradient": "updown_gradient",
+            "center_gradient": "center_gradient",
+        }
+        return aliases.get(render_mode, "pure_color")
+
+    def _normalize_bg_color_value(self, bg_color):
+        aliases = {
+            "白色": "white",
+            "蓝色": "blue",
+            "浅蓝色": "light_blue",
+            "深蓝色": "dark_blue",
+            "红色": "red",
+            "深红色": "dark_red",
+            "灰色": "gray",
+            "自定义(RGB)": "custom_rgb",
+            "自定义(HEX)": "custom_hex",
+            "white": "white",
+            "blue": "blue",
+            "light_blue": "light_blue",
+            "dark_blue": "dark_blue",
+            "red": "red",
+            "dark_red": "dark_red",
+            "gray": "gray",
+            "custom_rgb": "custom_rgb",
+            "custom_hex": "custom_hex",
+        }
+        return aliases.get(bg_color, "white")
+
+    def _normalize_paper_size_value(self, paper_size):
+        aliases = {
+            "6寸": "6inch",
+            "六寸": "6inch",
+            "5寸": "5inch",
+            "五寸": "5inch",
+            "A4": "A4",
+            "3R": "3R",
+            "4R": "4R",
+            "6inch": "6inch",
+            "5inch": "5inch",
+        }
+        return aliases.get(paper_size, "6inch")
+
+    def _normalize_size_value(self, size):
+        aliases = {
+            "one_inch": "one_inch",
+            "two_inch": "two_inch",
+            "id_card": "id_card",
+            "no_crop": "no_crop",
+            "small_one_inch": "small_one_inch",
+            "small_two_inch": "small_two_inch",
+            "large_one_inch": "large_one_inch",
+            "large_two_inch": "large_two_inch",
+            "social_security_card": "social_security_card",
+            "driver_license": "driver_license",
+            "electronic_driver_license": "electronic_driver_license",
+            "china_passport": "china_passport",
+            "us_visa": "us_visa",
+            "japan_visa": "japan_visa",
+            "korea_visa": "korea_visa",
+            "teacher_certificate": "teacher_certificate",
+            "civil_service_exam": "civil_service_exam",
+            "graduate_exam": "graduate_exam",
+            "junior_accounting_exam": "junior_accounting_exam",
+            "cet_exam": "cet_exam",
+            "computer_exam": "computer_exam",
+            "five_inch": "five_inch",
+        }
+        aliases.update(self.size_legacy_names)
+        return aliases.get(size, "no_crop")
+
+    def _get_option_label(self, options, value):
+        for label_key, option_value in options:
+            if option_value == value:
+                return tr(label_key)
+        return value
+
+    def _populate_option_combo(self, combo, options):
+        combo.clear()
+        for label_key, value in options:
+            combo.addItem(tr(label_key), value)
+
+    def _set_combo_current_data(self, combo, value, default_index=0):
+        index = combo.findData(value)
+        combo.setCurrentIndex(index if index >= 0 else default_index)
+
+    def _on_render_changed(self, _index=None):
+        if hasattr(self, 'render_combo'):
+            self.render_mode = self.render_combo.currentData() or 'pure_color'
+
     def _apply_gradient_background(self, img_rgba: np.ndarray) -> np.ndarray:
         """
         应用渐变背景（完全按照官方实现）
@@ -785,21 +912,14 @@ class IDPhotoModule(BaseModule):
         h, w = img_rgba.shape[:2]
         
         # 获取渲染模式
-        render_map = {
-            "纯色": "pure_color",
-            "上下渐变（白色）": "updown_gradient",
-            "中心渐变（白色）": "center_gradient",
-        }
-        
         if hasattr(self, 'render_combo'):
-            render_text = self.render_combo.currentText()
-            mode = render_map.get(render_text, "pure_color")
+            mode = self.render_combo.currentData() or self.render_mode
         else:
-            mode = "pure_color"
+            mode = self.render_mode or "pure_color"
         
         # 获取背景颜色
-        bg_name = self.bg_combo.currentText() if hasattr(self, 'bg_combo') else '白色'
-        if bg_name == '自定义(RGB)' or bg_name == '自定义(HEX)':
+        bg_name = self.bg_combo.currentData() if hasattr(self, 'bg_combo') else 'white'
+        if bg_name in ('custom_rgb', 'custom_hex'):
             start_color = self.custom_color
         else:
             start_color = self.bg_colors.get(bg_name, (255, 255, 255))
@@ -940,41 +1060,41 @@ class IDPhotoModule(BaseModule):
         measure = base_params['recommended_measure']
         top_dist = base_params['recommended_top_distance']
         
-        # 提取证件照类型关键词
-        id_lower = id_type_name.lower()
+        size_key = self._normalize_size_value(id_type_name)
+        size_category = self.size_categories.get(size_key, 'default')
         
         # ===== 一寸/二寸系列：大头照 =====
-        if any(kw in id_lower for kw in ['一寸', '二寸', '教师资格', '公务员', '会计']):
+        if size_category == 'large_head':
             measure *= 1.3   # 增大头部 30%
             top_dist *= 0.8  # 头顶更近 20%
         
         # ===== 身份证/社保卡：需要露出锁骨 =====
-        elif any(kw in id_lower for kw in ['身份证', '社保卡']):
+        elif size_category == 'id_card':
             measure *= 0.8   # 减小头部 20%，增加肩膀
             top_dist *= 0.9  # 头顶稍近 10%
         
         # ===== 驾驶证：与身份证类似 =====
-        elif '驾驶证' in id_lower:
+        elif size_category == 'driver_license':
             measure *= 0.85  # 减小头部 15%
             top_dist *= 0.95
         
         # ===== 中国护照：标准照 =====
-        elif '中国护照' in id_lower or '护照' in id_lower:
+        elif size_category == 'passport':
             measure *= 1.0   # 保持标准
             top_dist *= 1.0
         
         # ===== 美国签证：头占比 50-70% =====
-        elif '美国签证' in id_lower:
+        elif size_category == 'us_visa':
             measure *= 0.9   # 稍小头部
             top_dist *= 1.1  # 头顶留白更多
         
         # ===== 日本/韩国签证：头占比 70% =====
-        elif any(kw in id_lower for kw in ['日本签证', '韩国签证']):
+        elif size_category == 'jp_kr_visa':
             measure *= 1.2   # 增大头部 20%
             top_dist *= 0.85 # 头顶更近 15%
         
         # ===== 四六级/计算机等级考试：头占比 70% =====
-        elif any(kw in id_lower for kw in ['四六级', '计算机等级', '研究生']):
+        elif size_category == 'exam_large_head':
             measure *= 1.25  # 增大头部 25%
             top_dist *= 0.82
         
@@ -1686,7 +1806,7 @@ class IDPhotoModule(BaseModule):
         
         return result_image
     
-    def create_print_layout(self, photo_path: str, paper_type: str = '6寸', 
+    def create_print_layout(self, photo_path: str, paper_type: str = '6inch', 
                            count: int = None, gap_mm: float = 2.5, 
                            show_crop_line: bool = False, for_preview: bool = False) -> str:
         """
@@ -1712,10 +1832,10 @@ class IDPhotoModule(BaseModule):
         # 6R = 6x8 inch = 152x203mm = 1795x2398px
         # A4 = 210x297mm = 2480x3508px
         PAPER_SIZES = {
-            '6寸': (1795, 2398),   # 6寸 = 6R = 152x203mm
-            '六寸': (1795, 2398),  # 中文别名
-            '5寸': (1500, 2100),   # 5寸 = 5R = 127x178mm
-            '五寸': (1500, 2100),  # 中文别名
+            '6inch': (1795, 2398),  # 6寸 = 6R = 152x203mm
+            '六寸': (1795, 2398),    # 中文别名
+            '5inch': (1500, 2100),  # 5寸 = 5R = 127x178mm
+            '五寸': (1500, 2100),    # 中文别名
             'A4': (2480, 3508),    # A4纸竖向 = 210x297mm
             '3R': (1050, 1500),    # 3R = 3.5x5 inch = 89x127mm
             '4R': (1200, 1800),    # 4R = 4x6 inch = 102x152mm (标准300dpi: 1200×1800px，修正为更准确的尺寸)
@@ -1731,7 +1851,9 @@ class IDPhotoModule(BaseModule):
         
         photo_h, photo_w = photo.shape[:2]
         
-        paper_w, paper_h = PAPER_SIZES.get(paper_type, PAPER_SIZES['六寸'])  # 默认使用六寸
+        paper_type = self._normalize_paper_size_value(paper_type)
+        paper_label = self._get_option_label(self.paper_size_options, paper_type)
+        paper_w, paper_h = PAPER_SIZES.get(paper_type, PAPER_SIZES['6inch'])
         
         # 调试信息：打印纸张尺寸
         print(f"[排版] 纸张类型: {paper_type}, 尺寸: {paper_w}x{paper_h}px, 照片: {photo_w}x{photo_h}px")
@@ -1789,7 +1911,7 @@ class IDPhotoModule(BaseModule):
                 paper_h_mm = paper_h / MM_TO_PX
                 
                 error_msg = (
-                    f"排版失败：照片尺寸过大，无法在 {paper_type} 相纸上排版 {count} 张\n\n"
+                    f"排版失败：照片尺寸过大，无法在 {paper_label} 相纸上排版 {count} 张\n\n"
                     f"纸张尺寸：{paper_w_mm:.1f}×{paper_h_mm:.1f}mm\n"
                     f"照片尺寸：{photo_w_mm:.1f}×{photo_h_mm:.1f}mm\n"
                     f"间距设置：{gap_mm}mm\n\n"
@@ -2328,66 +2450,67 @@ class IDPhotoModule(BaseModule):
         """
         
         # 模式选择
-        mode_label = QLabel("模式:")
+        mode_label = QLabel(tr("id_photo.mode"))
         mode_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent;")
         layout1.addWidget(mode_label)
         
         self.mode_combo = StyledComboBox()
-        self.mode_combo.addItems(["尺寸列表", "只换底", "自定义(px)", "自定义(mm)"])
-        self.mode_combo.setCurrentIndex(0)
+        self._populate_option_combo(self.mode_combo, self.mode_options)
+        self._set_combo_current_data(self.mode_combo, self.mode)
         self.mode_combo.setMinimumWidth(130)
         self.mode_combo.setStyleSheet(combo_style)
-        self.mode_combo.currentTextChanged.connect(self._on_mode_changed)
+        self.mode_combo.currentIndexChanged.connect(self._on_mode_changed)
         layout1.addWidget(self.mode_combo)
         
         # 背景颜色选择
-        bg_label = QLabel("背景:")
+        bg_label = QLabel(tr("id_photo.background"))
         bg_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent;")
         layout1.addWidget(bg_label)
         
         self.bg_combo = StyledComboBox()
-        self.bg_combo.addItems(list(self.bg_colors.keys()))
-        self.bg_combo.setCurrentIndex(0)
+        self._populate_option_combo(self.bg_combo, self.bg_color_options)
+        self._set_combo_current_data(self.bg_combo, "white")
         self.bg_combo.setMinimumWidth(80)
         self.bg_combo.setStyleSheet(combo_style)
         layout1.addWidget(self.bg_combo)
         
         # 渲染模式选择
-        render_label = QLabel("渲染:")
+        render_label = QLabel(tr("id_photo.render"))
         render_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent;")
         layout1.addWidget(render_label)
         
         self.render_combo = StyledComboBox()
-        self.render_combo.addItems(["纯色", "上下渐变（白色）", "中心渐变（白色）"])
-        self.render_combo.setCurrentIndex(0)
+        self._populate_option_combo(self.render_combo, self.render_options)
+        self._set_combo_current_data(self.render_combo, self.render_mode)
         self.render_combo.setMinimumWidth(120)
         self.render_combo.setStyleSheet(combo_style)
+        self.render_combo.currentIndexChanged.connect(self._on_render_changed)
         layout1.addWidget(self.render_combo)
         
         # 尺寸选择
-        size_label = QLabel("尺寸:")
+        size_label = QLabel(tr("id_photo.size"))
         size_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent;")
         layout1.addWidget(size_label)
         
         self.size_combo = StyledComboBox()
-        self.size_combo.addItems(list(self.sizes.keys()))
-        self.size_combo.setCurrentIndex(0)
+        self._populate_option_combo(self.size_combo, self.size_options)
+        self._set_combo_current_data(self.size_combo, "one_inch")
         self.size_combo.setMinimumWidth(120)
         self.size_combo.setStyleSheet(combo_style)
         layout1.addWidget(self.size_combo)
         
         # ===== 人脸检测选择 =====
-        face_detect_label = QLabel("人脸检测:")
+        face_detect_label = QLabel(tr("id_photo.face_detection"))
         face_detect_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent;")
         layout1.addWidget(face_detect_label)
         
         self.face_detect_combo = StyledComboBox()
-        self.face_detect_combo.addItems(["快速模式", "高精度模式"])
-        self.face_detect_combo.setCurrentIndex(0)  # 默认 MTCNN
+        self._populate_option_combo(self.face_detect_combo, self.face_detect_options)
+        self._set_combo_current_data(self.face_detect_combo, self.face_detect_model)
         self.face_detect_combo.setMinimumWidth(140)
         self.face_detect_combo.setMaximumWidth(150)
         self.face_detect_combo.setStyleSheet(combo_style)
-        self.face_detect_combo.currentTextChanged.connect(self._on_face_detect_changed)
+        self.face_detect_combo.currentIndexChanged.connect(self._on_face_detect_changed)
         layout1.addWidget(self.face_detect_combo)
         
         layout1.addStretch()
@@ -2420,49 +2543,49 @@ class IDPhotoModule(BaseModule):
             }
         """
         
-        beauty_btn = QPushButton("🌿 美颜设置")
+        beauty_btn = QPushButton(f"🌿 {tr('id_photo.beauty_settings')}")
         beauty_btn.setMinimumWidth(120)
         beauty_btn.setStyleSheet(beauty_button_style)
         beauty_btn.clicked.connect(self._show_beauty_dialog)
         layout2.addWidget(beauty_btn)
         
         # 水印按钮
-        watermark_btn = QPushButton("📝 水印设置")
+        watermark_btn = QPushButton(f"📝 {tr('id_photo.watermark_settings')}")
         watermark_btn.setMinimumWidth(120)
         watermark_btn.setStyleSheet(beauty_button_style)
         watermark_btn.clicked.connect(self._show_watermark_dialog)
         layout2.addWidget(watermark_btn)
         
         # 输出设置按钮 (KB大小 + DPI)
-        output_btn = QPushButton("💾 输出设置")
+        output_btn = QPushButton(f"💾 {tr('id_photo.output_settings')}")
         output_btn.setMinimumWidth(120)
         output_btn.setStyleSheet(beauty_button_style)
         output_btn.clicked.connect(self._show_output_dialog)
         layout2.addWidget(output_btn)
         
         # 高级参数按钮
-        advanced_btn = QPushButton("⚙️ 高级参数")
+        advanced_btn = QPushButton(f"⚙️ {tr('id_photo.advanced_settings')}")
         advanced_btn.setMinimumWidth(120)
         advanced_btn.setStyleSheet(beauty_button_style)
         advanced_btn.clicked.connect(self._show_advanced_dialog)
         layout2.addWidget(advanced_btn)
         
         # 插件功能按钮
-        plugin_btn = QPushButton("🤖 插件功能")
+        plugin_btn = QPushButton(f"🤖 {tr('id_photo.plugin_settings')}")
         plugin_btn.setMinimumWidth(120)
         plugin_btn.setStyleSheet(beauty_button_style)
         plugin_btn.clicked.connect(self._show_plugin_dialog)
         layout2.addWidget(plugin_btn)
         
         # 输出类型按钮
-        output_type_btn = QPushButton("📸 输出类型")
+        output_type_btn = QPushButton(f"📸 {tr('id_photo.output_type')}")
         output_type_btn.setMinimumWidth(120)
         output_type_btn.setStyleSheet(beauty_button_style)
         output_type_btn.clicked.connect(self._show_output_type_dialog)
         layout2.addWidget(output_type_btn)
         
         # 适应框/实际大小（仅导入大图时显示，高度与前面按钮一致，颜色区分）
-        self.fit_actual_btn = QPushButton("适应框")
+        self.fit_actual_btn = QPushButton(tr("common.fit_frame"))
         self.fit_actual_btn.setMinimumWidth(90)
         self.fit_actual_btn.setVisible(False)
         self.fit_actual_btn.setStyleSheet("""
@@ -2495,15 +2618,9 @@ class IDPhotoModule(BaseModule):
         
         return widget
     
-    def _on_mode_changed(self, mode_text):
+    def _on_mode_changed(self, _index=None):
         """模式切换回调（完全按照官方）"""
-        mode_map = {
-            "尺寸列表": 'size_list',
-            "只换底": 'only_change_bg',
-            "自定义(px)": 'custom_px',
-            "自定义(mm)": 'custom_mm',
-        }
-        self.mode = mode_map.get(mode_text, 'size_list')
+        self.mode = self.mode_combo.currentData() or 'size_list'
         
         # 根据模式启用/禁用尺寸选择
         if hasattr(self, 'size_combo'):
@@ -2513,13 +2630,9 @@ class IDPhotoModule(BaseModule):
         if self.mode in ['custom_px', 'custom_mm']:
             self._show_custom_size_dialog(self.mode)
     
-    def _on_face_detect_changed(self, method_text):
+    def _on_face_detect_changed(self, _index=None):
         """人脸检测器切换回调"""
-        method_map = {
-            "快速模式": 'mtcnn',
-            "高精度模式": 'retinaface',
-        }
-        self.face_detect_model = method_map.get(method_text, 'mtcnn')
+        self.face_detect_model = self.face_detect_combo.currentData() or 'mtcnn'
         print(f"[证件照] 切换人脸检测器: {self.face_detect_model}")
     
     def _show_custom_size_dialog(self, mode):
@@ -2528,7 +2641,9 @@ class IDPhotoModule(BaseModule):
         from PyQt6.QtGui import QIntValidator
         
         dialog = QDialog()
-        dialog.setWindowTitle("自定义尺寸 (" + ("px" if mode == 'custom_px' else "mm") + ")")
+        dialog.setWindowTitle(
+            tr("id_photo.custom_size_title", unit="px" if mode == 'custom_px' else "mm")
+        )
         dialog.setMinimumWidth(450)
         dialog.setStyleSheet("""
             QDialog { 
@@ -2558,7 +2673,7 @@ class IDPhotoModule(BaseModule):
         layout.setContentsMargins(24, 20, 24, 20)
         
         # 提示信息
-        info = QLabel("⚠️ 提示：宽度不应大于高度，尺寸范围 100-1800")
+        info = QLabel(f"⚠️ {tr('id_photo.custom_size_tip')}")
         info.setStyleSheet("""
             color: hsl(38, 92%, 50%);
             background-color: hsla(38, 92%, 50%, 0.1);
@@ -2576,7 +2691,9 @@ class IDPhotoModule(BaseModule):
         height_row_layout.setContentsMargins(0, 0, 0, 0)
         height_row_layout.setSpacing(12)
         
-        height_label = QLabel("📌 高度" + (":" if mode == 'custom_px' else " (mm)："))
+        height_label = QLabel(
+            f"📌 {tr('id_photo.height', unit='' if mode == 'custom_px' else ' (mm)')}"
+        )
         height_label.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-weight: bold;
@@ -2587,7 +2704,7 @@ class IDPhotoModule(BaseModule):
         
         h_edit = QLineEdit(str(self.custom_size[0]))
         h_edit.setValidator(QIntValidator(100, 1800))
-        h_edit.setPlaceholderText("输入高度值")
+        h_edit.setPlaceholderText(tr("id_photo.enter_height"))
         height_row_layout.addWidget(h_edit)
         
         layout.addWidget(height_row)
@@ -2598,7 +2715,9 @@ class IDPhotoModule(BaseModule):
         width_row_layout.setContentsMargins(0, 0, 0, 0)
         width_row_layout.setSpacing(12)
         
-        width_label = QLabel("📌 宽度" + (":" if mode == 'custom_px' else " (mm)："))
+        width_label = QLabel(
+            f"📌 {tr('id_photo.width', unit='' if mode == 'custom_px' else ' (mm)')}"
+        )
         width_label.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-weight: bold;
@@ -2609,7 +2728,7 @@ class IDPhotoModule(BaseModule):
         
         w_edit = QLineEdit(str(self.custom_size[1]))
         w_edit.setValidator(QIntValidator(100, 1800))
-        w_edit.setPlaceholderText("输入宽度值")
+        w_edit.setPlaceholderText(tr("id_photo.enter_width"))
         width_row_layout.addWidget(w_edit)
         
         layout.addWidget(width_row)
@@ -2660,7 +2779,7 @@ class IDPhotoModule(BaseModule):
         """
         
         # 取消按钮
-        cancel_btn = QPushButton("❌ 取消")
+        cancel_btn = QPushButton(f"❌ {tr('common.cancel')}")
         cancel_btn.setStyleSheet(cancel_style)
         cancel_btn.clicked.connect(dialog.reject)
         button_layout.addWidget(cancel_btn)
@@ -2668,21 +2787,25 @@ class IDPhotoModule(BaseModule):
         button_layout.addStretch()
         
         # 确定按钮
-        confirm_btn = QPushButton("✅ 确定")
+        confirm_btn = QPushButton(f"✅ {tr('common.confirm')}")
         confirm_btn.setStyleSheet(button_style)
         
         def confirm():
             try:
                 h, w = int(h_edit.text()), int(w_edit.text())
                 if w > h or h < 100 or w < 100 or h > 1800 or w > 1800:
-                    QMessageBox.warning(dialog, "错误", "尺寸不符合要求！\n\n请确保：\n1. 宽度 ≤ 高度\n2. 尺寸在 100-1800 范围内")
+                    QMessageBox.warning(
+                        dialog,
+                        tr("common.error"),
+                        tr("id_photo.custom_size_invalid"),
+                    )
                     return
                 if mode == 'custom_mm':
                     h, w = int(h * 300 / 25.4), int(w * 300 / 25.4)
                 self.custom_size = (h, w)
                 dialog.accept()
             except:
-                QMessageBox.warning(dialog, "错误", "请输入有效的数值！")
+                QMessageBox.warning(dialog, tr("common.error"), tr("id_photo.custom_size_invalid_number"))
         
         confirm_btn.clicked.connect(confirm)
         button_layout.addWidget(confirm_btn)
@@ -2696,7 +2819,7 @@ class IDPhotoModule(BaseModule):
         from PyQt6.QtCore import Qt
         
         dialog = QDialog()
-        dialog.setWindowTitle("高级裁剪参数")
+        dialog.setWindowTitle(tr("id_photo.advanced_dialog_title"))
         dialog.setMinimumWidth(550)
         dialog.setStyleSheet("""
             QDialog { background-color: hsl(222.2, 84%, 4.9%); color: hsl(213, 31%, 91%); }
@@ -2710,13 +2833,13 @@ class IDPhotoModule(BaseModule):
         layout.setContentsMargins(20, 20, 20, 20)
         
         # 启用开关
-        enable_cb = QCheckBox("启用高级参数（勾选后使用下方参数，否则使用智能算法自动计算）")
+        enable_cb = QCheckBox(tr("id_photo.advanced_enable"))
         enable_cb.setChecked(bool(self.advanced_params.get('enabled', False)))
-        enable_cb.setToolTip("默认使用智能算法。如需手动微调裁剪效果，可勾选此项后调整参数")
+        enable_cb.setToolTip(tr("id_photo.advanced_enable_tooltip"))
         layout.addWidget(enable_cb)
         
         # 标题说明
-        title = QLabel("⚡ 智能裁剪算法参数")
+        title = QLabel(f"⚡ {tr('id_photo.advanced_title')}")
         title.setStyleSheet("""
             color: hsl(221.2, 83.2%, 53.3%);
             font-size: 15px;
@@ -2726,9 +2849,7 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(title)
         
         # 总体说明
-        info = QLabel(
-            "💡 这些参数用于控制证件照的裁剪效果，默认值已经很好，仅当需要微调时才需调整。"
-        )
+        info = QLabel(f"💡 {tr('id_photo.advanced_info')}")
         info.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             background-color: hsl(217.2, 32.6%, 17.5%);
@@ -2773,13 +2894,13 @@ class IDPhotoModule(BaseModule):
         ratio_layout.setContentsMargins(0, 0, 0, 0)
         ratio_layout.setSpacing(4)
         
-        ratio_label = QLabel(f"🔍 人脸面积占比：{self.advanced_params['head_measure_ratio']:.2f}")
+        ratio_label = QLabel(
+            f"🔍 {tr('id_photo.advanced_ratio_label', value=self.advanced_params['head_measure_ratio'])}"
+        )
         ratio_label.setStyleSheet(label_style)
         ratio_layout.addWidget(ratio_label)
         
-        ratio_desc = QLabel(
-            "💡 控制人脸在照片中的大小。较小值(0.15)适合半身照，默认值(0.20)适合大多数场景，较大值(0.25)适合特写照。"
-        )
+        ratio_desc = QLabel(f"💡 {tr('id_photo.advanced_ratio_desc')}")
         ratio_desc.setStyleSheet(desc_style)
         ratio_desc.setWordWrap(True)
         ratio_layout.addWidget(ratio_desc)
@@ -2788,7 +2909,9 @@ class IDPhotoModule(BaseModule):
         ratio_slider.setRange(15, 25)  # 0.15 - 0.25
         ratio_slider.setValue(int(self.advanced_params['head_measure_ratio'] * 100))
         ratio_slider.setStyleSheet(slider_style)
-        ratio_slider.valueChanged.connect(lambda v: ratio_label.setText(f"🔍 人脸面积占比：{v/100:.2f}"))
+        ratio_slider.valueChanged.connect(
+            lambda v: ratio_label.setText(f"🔍 {tr('id_photo.advanced_ratio_label', value=v / 100)}")
+        )
         ratio_layout.addWidget(ratio_slider)
         
         layout.addWidget(ratio_container)
@@ -2799,13 +2922,13 @@ class IDPhotoModule(BaseModule):
         distance_layout.setContentsMargins(0, 0, 0, 0)
         distance_layout.setSpacing(4)
         
-        distance_label = QLabel(f"📏 头顶距离上边界：{self.advanced_params['top_distance_max']:.2f}")
+        distance_label = QLabel(
+            f"📏 {tr('id_photo.advanced_distance_label', value=self.advanced_params['top_distance_max'])}"
+        )
         distance_label.setStyleSheet(label_style)
         distance_layout.addWidget(distance_label)
         
-        distance_desc = QLabel(
-            "💡 控制头顶到照片上边缘的距离。较小值(0.10)照片更紧凑，默认值(0.12)符合证件照规范，较大值(0.15)照片更宽松。"
-        )
+        distance_desc = QLabel(f"💡 {tr('id_photo.advanced_distance_desc')}")
         distance_desc.setStyleSheet(desc_style)
         distance_desc.setWordWrap(True)
         distance_layout.addWidget(distance_desc)
@@ -2814,7 +2937,9 @@ class IDPhotoModule(BaseModule):
         distance_slider.setRange(10, 15)  # 0.10 - 0.15
         distance_slider.setValue(int(self.advanced_params['top_distance_max'] * 100))
         distance_slider.setStyleSheet(slider_style)
-        distance_slider.valueChanged.connect(lambda v: distance_label.setText(f"📏 头顶距离上边界：{v/100:.2f}"))
+        distance_slider.valueChanged.connect(
+            lambda v: distance_label.setText(f"📏 {tr('id_photo.advanced_distance_label', value=v / 100)}")
+        )
         distance_layout.addWidget(distance_slider)
         
         layout.addWidget(distance_container)
@@ -2859,7 +2984,7 @@ class IDPhotoModule(BaseModule):
         """
         
         # 重置按钮
-        reset_btn = QPushButton("🔄 重置")
+        reset_btn = QPushButton(f"🔄 {tr('common.reset')}")
         reset_btn.setStyleSheet(reset_button_style)
         def reset_values():
             ratio_slider.setValue(20)  # 0.20
@@ -2870,7 +2995,7 @@ class IDPhotoModule(BaseModule):
         button_layout.addStretch()
         
         # 确定按钮
-        confirm_btn = QPushButton("✅ 确定")
+        confirm_btn = QPushButton(f"✅ {tr('common.confirm')}")
         confirm_btn.setStyleSheet(button_style)
         def on_confirm():
             self.advanced_params.update({
@@ -2891,7 +3016,7 @@ class IDPhotoModule(BaseModule):
         from PyQt6.QtCore import Qt
         
         dialog = QDialog()
-        dialog.setWindowTitle("美颜设置")
+        dialog.setWindowTitle(tr("id_photo.beauty_dialog_title"))
         dialog.setMinimumWidth(560)
         dialog.setMinimumHeight(520)
         dialog.setStyleSheet("""
@@ -2957,7 +3082,7 @@ class IDPhotoModule(BaseModule):
         enable_row_layout.setContentsMargins(0, 0, 0, 0)
         enable_row_layout.setSpacing(12)
         
-        enable_check = QCheckBox("✨ 启用美颜")
+        enable_check = QCheckBox(f"✨ {tr('id_photo.beauty_enable')}")
         enable_check.setChecked(self.beauty_params.get('enabled', False))
         enable_check.setStyleSheet("font-size: 15px; font-weight: bold; color: hsl(221.2, 83.2%, 53.3%);")
         enable_row_layout.addWidget(enable_check)
@@ -2966,7 +3091,7 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(enable_row)
         
         # 设置说明
-        info_label = QLabel("💡 说明：美颜功能可以优化皮肤色调、调整亮度对比度、增强锐度，让证件照更加美观。建议适度调整，避免过度修饰。")
+        info_label = QLabel(f"💡 {tr('id_photo.beauty_info')}")
         info_label.setWordWrap(True)
         info_label.setStyleSheet("""
             color: hsl(38, 92%, 50%);
@@ -2982,7 +3107,7 @@ class IDPhotoModule(BaseModule):
         whitening_row = QWidget()
         whitening_layout = QHBoxLayout(whitening_row)
         whitening_layout.setContentsMargins(0, 0, 0, 0)
-        whitening_label = QLabel("🌟 美白:")
+        whitening_label = QLabel(f"🌟 {tr('id_photo.beauty_whitening')}")
         whitening_label.setStyleSheet(label_style)
         whitening_label.setFixedWidth(100)
         whitening_layout.addWidget(whitening_label)
@@ -3005,7 +3130,7 @@ class IDPhotoModule(BaseModule):
         brightness_row = QWidget()
         brightness_layout = QHBoxLayout(brightness_row)
         brightness_layout.setContentsMargins(0, 0, 0, 0)
-        brightness_label = QLabel("☀️ 亮度:")
+        brightness_label = QLabel(f"☀️ {tr('id_photo.beauty_brightness')}")
         brightness_label.setStyleSheet(label_style)
         brightness_label.setFixedWidth(100)
         brightness_layout.addWidget(brightness_label)
@@ -3028,7 +3153,7 @@ class IDPhotoModule(BaseModule):
         contrast_row = QWidget()
         contrast_layout = QHBoxLayout(contrast_row)
         contrast_layout.setContentsMargins(0, 0, 0, 0)
-        contrast_label = QLabel("🎨 对比度:")
+        contrast_label = QLabel(f"🎨 {tr('id_photo.beauty_contrast')}")
         contrast_label.setStyleSheet(label_style)
         contrast_label.setFixedWidth(100)
         contrast_layout.addWidget(contrast_label)
@@ -3051,7 +3176,7 @@ class IDPhotoModule(BaseModule):
         saturation_row = QWidget()
         saturation_layout = QHBoxLayout(saturation_row)
         saturation_layout.setContentsMargins(0, 0, 0, 0)
-        saturation_label = QLabel("🌈 饱和度:")
+        saturation_label = QLabel(f"🌈 {tr('id_photo.beauty_saturation')}")
         saturation_label.setStyleSheet(label_style)
         saturation_label.setFixedWidth(100)
         saturation_layout.addWidget(saturation_label)
@@ -3074,7 +3199,7 @@ class IDPhotoModule(BaseModule):
         sharpen_row = QWidget()
         sharpen_layout = QHBoxLayout(sharpen_row)
         sharpen_layout.setContentsMargins(0, 0, 0, 0)
-        sharpen_label = QLabel("✨ 锐化:")
+        sharpen_label = QLabel(f"✨ {tr('id_photo.beauty_sharpen')}")
         sharpen_label.setStyleSheet(label_style)
         sharpen_label.setFixedWidth(100)
         sharpen_layout.addWidget(sharpen_label)
@@ -3119,7 +3244,7 @@ class IDPhotoModule(BaseModule):
             }
         """
         
-        reset_btn = QPushButton("🔄 重置")
+        reset_btn = QPushButton(f"🔄 {tr('common.reset')}")
         reset_btn.setStyleSheet(button_style.replace("hsl(221.2, 83.2%, 53.3%)", "hsl(0, 0%, 45%)").replace("hsl(221.2, 83.2%, 60%)", "hsl(0, 0%, 55%)").replace("hsl(221.2, 83.2%, 45%)", "hsl(0, 0%, 40%)"))
         
         def reset_settings():
@@ -3135,7 +3260,7 @@ class IDPhotoModule(BaseModule):
         
         button_layout.addStretch()
         
-        confirm_btn = QPushButton("✅ 确定")
+        confirm_btn = QPushButton(f"✅ {tr('common.confirm')}")
         confirm_btn.setStyleSheet(button_style)
         
         def save_settings():
@@ -3162,7 +3287,7 @@ class IDPhotoModule(BaseModule):
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QCheckBox
         
         dialog = QDialog()
-        dialog.setWindowTitle("插件功能")
+        dialog.setWindowTitle(tr("id_photo.plugin_dialog_title"))
         dialog.setMinimumWidth(520)
         dialog.setStyleSheet("QDialog { background-color: hsl(222.2, 84%, 4.9%); color: hsl(213, 31%, 91%); }")
         
@@ -3171,7 +3296,7 @@ class IDPhotoModule(BaseModule):
         layout.setContentsMargins(20, 20, 20, 20)
         
         # 标题说明
-        title = QLabel("⚡ 插件功能设置")
+        title = QLabel(f"⚡ {tr('id_photo.plugin_title')}")
         title.setStyleSheet("""
             color: hsl(221.2, 83.2%, 53.3%);
             font-size: 15px;
@@ -3181,9 +3306,7 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(title)
         
         # 功能说明框
-        desc_box = QLabel(
-            "💡 高级功能选项，默认设置已经很好，仅在需要时启用。启用后会在生成证件照时应用相应处理。"
-        )
+        desc_box = QLabel(f"💡 {tr('id_photo.plugin_desc')}")
         desc_box.setStyleSheet("""
             background-color: hsl(217.2, 32.6%, 17.5%);
             border-radius: 4px;
@@ -3218,14 +3341,12 @@ class IDPhotoModule(BaseModule):
         """
         
         # 插件1：人脸旋转对齐
-        face_align_check = QCheckBox("🎯 人脸旋转对齐")
+        face_align_check = QCheckBox(f"🎯 {tr('id_photo.plugin_face_align')}")
         face_align_check.setChecked(self.plugin_params['face_alignment'])
         face_align_check.setStyleSheet(checkbox_style)
         layout.addWidget(face_align_check)
         
-        face_align_desc = QLabel(
-            "💡 自动检测并旋转人脸，使人脸水平对齐，适用场景：拍照时头部有轻微偏转。"
-        )
+        face_align_desc = QLabel(f"💡 {tr('id_photo.plugin_face_align_desc')}")
         face_align_desc.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-size: 11px;
@@ -3237,14 +3358,12 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(face_align_desc)
         
         # 插件2：水平翻转
-        h_flip_check = QCheckBox("🔄 水平翻转")
+        h_flip_check = QCheckBox(f"🔄 {tr('id_photo.plugin_hflip')}")
         h_flip_check.setChecked(self.plugin_params['horizontal_flip'])
         h_flip_check.setStyleSheet(checkbox_style)
         layout.addWidget(h_flip_check)
         
-        h_flip_desc = QLabel(
-            "💡 将图片水平翻转（镜像），适用场景：需要镜像效果的证件照。"
-        )
+        h_flip_desc = QLabel(f"💡 {tr('id_photo.plugin_hflip_desc')}")
         h_flip_desc.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-size: 11px;
@@ -3256,14 +3375,12 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(h_flip_desc)
         
         # 插件3：JPEG格式输出
-        jpeg_check = QCheckBox("💾 JPEG格式输出")
+        jpeg_check = QCheckBox(f"💾 {tr('id_photo.plugin_jpeg')}")
         jpeg_check.setChecked(self.plugin_params['jpeg_format'])
         jpeg_check.setStyleSheet(checkbox_style)
         layout.addWidget(jpeg_check)
         
-        jpeg_desc = QLabel(
-            "💡 使用JPEG格式保存（默认PNG），优点：文件更小，上传速度更快；缺点：JPEG不支持透明背景。"
-        )
+        jpeg_desc = QLabel(f"💡 {tr('id_photo.plugin_jpeg_desc')}")
         jpeg_desc.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-size: 11px;
@@ -3314,7 +3431,7 @@ class IDPhotoModule(BaseModule):
         """
         
         # 重置按钮
-        reset_btn = QPushButton("🔄 重置")
+        reset_btn = QPushButton(f"🔄 {tr('common.reset')}")
         reset_btn.setStyleSheet(reset_button_style)
         def reset_values():
             face_align_check.setChecked(False)
@@ -3326,7 +3443,7 @@ class IDPhotoModule(BaseModule):
         button_layout.addStretch()
         
         # 确定按钮
-        confirm_btn = QPushButton("✅ 确定")
+        confirm_btn = QPushButton(f"✅ {tr('common.confirm')}")
         confirm_btn.setStyleSheet(button_style)
         confirm_btn.clicked.connect(lambda: [
             self.plugin_params.update({
@@ -3349,7 +3466,7 @@ class IDPhotoModule(BaseModule):
     def update_fit_button_text(self, fit: bool):
         """更新按钮文字：显示点击后将切换到的状态。当前适应框→显示“实际大小”，当前实际大小→显示“适应框”"""
         if hasattr(self, 'fit_actual_btn'):
-            self.fit_actual_btn.setText("实际大小" if fit else "适应框")
+            self.fit_actual_btn.setText(tr("common.actual_size") if fit else tr("common.fit_frame"))
     
     def _on_fit_actual_clicked(self):
         """切换预览：适应框 ↔ 实际大小（通过模块保存的 tab 引用）"""
@@ -3365,7 +3482,7 @@ class IDPhotoModule(BaseModule):
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QRadioButton, QButtonGroup
         
         dialog = QDialog()
-        dialog.setWindowTitle("输出类型")
+        dialog.setWindowTitle(tr("id_photo.output_type_dialog_title"))
         dialog.setMinimumWidth(520)
         dialog.setStyleSheet("QDialog { background-color: hsl(222.2, 84%, 4.9%); color: hsl(213, 31%, 91%); }")
         
@@ -3374,7 +3491,7 @@ class IDPhotoModule(BaseModule):
         layout.setContentsMargins(20, 20, 20, 20)
         
         # 标题说明
-        title = QLabel("⚡ 输出照片类型")
+        title = QLabel(f"⚡ {tr('id_photo.output_type_title')}")
         title.setStyleSheet("""
             color: hsl(221.2, 83.2%, 53.3%);
             font-size: 15px;
@@ -3384,9 +3501,7 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(title)
         
         # 功能说明框
-        desc_box = QLabel(
-            "💡 选择合适的输出类型，默认输出标准照，透明照适用于后期处理、高清照适用于打印。"
-        )
+        desc_box = QLabel(f"💡 {tr('id_photo.output_type_desc')}")
         desc_box.setStyleSheet("""
             background-color: hsl(217.2, 32.6%, 17.5%);
             border-radius: 4px;
@@ -3425,17 +3540,13 @@ class IDPhotoModule(BaseModule):
         type_group = QButtonGroup()
         
         # 选项1：标准照
-        standard_radio = QRadioButton("📷 标准照（默认）")
+        standard_radio = QRadioButton(f"📷 {tr('id_photo.output_type_standard')}")
         standard_radio.setChecked(self.output_types['standard_photo'])
         standard_radio.setStyleSheet(radio_style)
         type_group.addButton(standard_radio, 0)
         layout.addWidget(standard_radio)
         
-        standard_desc = QLabel(
-            "💡 说明：标准分辨率证件照，适用于大多数场景。<br>"
-            "· 分辨率：根据尺寸需求（如一寸295x413px）<br>"
-            "· 格式：PNG/JPEG（带背景色）"
-        )
+        standard_desc = QLabel(tr("id_photo.output_type_standard_desc"))
         standard_desc.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-size: 12px;
@@ -3447,17 +3558,13 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(standard_desc)
         
         # 选项2：高清照
-        hd_radio = QRadioButton("🌟 高清照（HD Photo）")
+        hd_radio = QRadioButton(f"🌟 {tr('id_photo.output_type_hd')}")
         hd_radio.setChecked(self.output_types['hd_photo'])
         hd_radio.setStyleSheet(radio_style)
         type_group.addButton(hd_radio, 1)
         layout.addWidget(hd_radio)
         
-        hd_desc = QLabel(
-            "💡 说明：2倍分辨率高清照，适用于打印和高质量要求。<br>"
-            "· 分辨率：标准尺寸的2倍（如一寸590x826px）<br>"
-            "· 格式：PNG/JPEG（带背景色）"
-        )
+        hd_desc = QLabel(tr("id_photo.output_type_hd_desc"))
         hd_desc.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-size: 12px;
@@ -3469,17 +3576,13 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(hd_desc)
         
         # 选项3：透明标准照
-        matting_standard_radio = QRadioButton("🔳 透明标准照")
+        matting_standard_radio = QRadioButton(f"🔳 {tr('id_photo.output_type_matting_standard')}")
         matting_standard_radio.setChecked(self.output_types['matting_standard'])
         matting_standard_radio.setStyleSheet(radio_style)
         type_group.addButton(matting_standard_radio, 2)
         layout.addWidget(matting_standard_radio)
         
-        matting_standard_desc = QLabel(
-            "💡 说明：透明背景PNG格式，适用于后期处理。<br>"
-            "· 分辨率：标准尺寸<br>"
-            "· 格式：PNG（透明通道）"
-        )
+        matting_standard_desc = QLabel(tr("id_photo.output_type_matting_standard_desc"))
         matting_standard_desc.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-size: 12px;
@@ -3491,17 +3594,13 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(matting_standard_desc)
         
         # 选项4：透明高清照
-        matting_hd_radio = QRadioButton("✨ 透明高清照")
+        matting_hd_radio = QRadioButton(f"✨ {tr('id_photo.output_type_matting_hd')}")
         matting_hd_radio.setChecked(self.output_types['matting_hd'])
         matting_hd_radio.setStyleSheet(radio_style)
         type_group.addButton(matting_hd_radio, 3)
         layout.addWidget(matting_hd_radio)
         
-        matting_hd_desc = QLabel(
-            "💡 说明：2倍分辨率透明背景，高质量后期处理。<br>"
-            "· 分辨率：标准尺寸的2倍<br>"
-            "· 格式：PNG（透明通道）"
-        )
+        matting_hd_desc = QLabel(tr("id_photo.output_type_matting_hd_desc"))
         matting_hd_desc.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-size: 12px;
@@ -3513,17 +3612,13 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(matting_hd_desc)
         
         # 选项5：排版照
-        layout_photo_radio = QRadioButton("🖼️ 排版照")
+        layout_photo_radio = QRadioButton(f"🖼️ {tr('id_photo.output_type_layout')}")
         layout_photo_radio.setChecked(self.output_types['layout_photo'])
         layout_photo_radio.setStyleSheet(radio_style)
         type_group.addButton(layout_photo_radio, 4)
         layout.addWidget(layout_photo_radio)
         
-        layout_photo_desc = QLabel(
-            "💡 说明：智能排版在相纸上，便于打印。<br>"
-            "· 功能：根据相纸大小智能排列多张照片<br>"
-            "· 需要：在 '🖨️ 打印排版' 中选择相纸大小"
-        )
+        layout_photo_desc = QLabel(tr("id_photo.output_type_layout_desc"))
         layout_photo_desc.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-size: 12px;
@@ -3574,7 +3669,7 @@ class IDPhotoModule(BaseModule):
         """
         
         # 重置按钮
-        reset_btn = QPushButton("🔄 重置默认值")
+        reset_btn = QPushButton(f"🔄 {tr('common.reset_defaults')}")
         reset_btn.setStyleSheet(reset_button_style)
         def reset_values():
             standard_radio.setChecked(True)
@@ -3584,7 +3679,7 @@ class IDPhotoModule(BaseModule):
         button_layout.addStretch()
         
         # 确定按钮
-        confirm_btn = QPushButton("✅ 确定应用")
+        confirm_btn = QPushButton(f"✅ {tr('common.apply')}")
         confirm_btn.setStyleSheet(button_style)
         def apply_output_type():
             # 根据选择更新output_types
@@ -3608,7 +3703,7 @@ class IDPhotoModule(BaseModule):
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QComboBox, QCheckBox
         
         dialog = QDialog()
-        dialog.setWindowTitle("打印排版设置")
+        dialog.setWindowTitle(tr("id_photo.print_layout_dialog_title"))
         dialog.setMinimumWidth(550)
         dialog.setStyleSheet("QDialog { background-color: hsl(222.2, 84%, 4.9%); color: hsl(213, 31%, 91%); }")
         
@@ -3617,7 +3712,7 @@ class IDPhotoModule(BaseModule):
         layout.setContentsMargins(20, 16, 20, 16)
         
         # 标题说明
-        title = QLabel("⚙️ 打印排版设置")
+        title = QLabel(f"⚙️ {tr('id_photo.print_layout_title')}")
         title.setStyleSheet("""
             color: hsl(221.2, 83.2%, 53.3%);
             font-size: 16px;
@@ -3627,7 +3722,7 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(title)
         
         # 启用排版复选框
-        enable_check = QCheckBox("📎 启用打印排版")
+        enable_check = QCheckBox(f"📎 {tr('id_photo.print_layout_enable')}")
         enable_check.setChecked(self.print_params['enabled'])
         enable_check.setStyleSheet("""
             QCheckBox {
@@ -3658,7 +3753,7 @@ class IDPhotoModule(BaseModule):
         paper_layout = QHBoxLayout(paper_row)
         paper_layout.setContentsMargins(0, 12, 0, 0)
         
-        paper_label = QLabel("📜 相纸选择:")
+        paper_label = QLabel(f"📜 {tr('id_photo.paper_select')}")
         paper_label.setStyleSheet("color: hsl(213, 31%, 91%); font-size: 14px; font-weight: bold;")
         paper_label.setFixedWidth(100)
         paper_layout.addWidget(paper_label)
@@ -3666,8 +3761,11 @@ class IDPhotoModule(BaseModule):
         from ui.custom_widgets import StyledComboBox
         
         paper_combo = StyledComboBox()
-        paper_combo.addItems(list(self.paper_sizes.keys()))
-        paper_combo.setCurrentText(self.print_params['paper_size'])
+        self._populate_option_combo(paper_combo, self.paper_size_options)
+        self._set_combo_current_data(
+            paper_combo,
+            self._normalize_paper_size_value(self.print_params['paper_size'])
+        )
         paper_combo.setMinimumWidth(200)
         # 使用与主界面一致的样式
         combo_style = """
@@ -3705,14 +3803,7 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(paper_row)
         
         # 相纸尺寸说明
-        paper_info = QLabel(
-            "📊 <b>相纸尺寸说明</b><br>"
-            "· 六寸: 1205x1795px （最常用）<br>"
-            "· 五寸: 1051x1500px<br>"
-            "· A4: 2479x3508px<br>"
-            "· 3R: 1051x1500px<br>"
-            "· 4R: 1205x1795px"
-        )
+        paper_info = QLabel(tr("id_photo.print_layout_paper_info"))
         paper_info.setStyleSheet("""
             color: hsl(215, 20.2%, 65.1%);
             font-size: 12px;
@@ -3764,23 +3855,23 @@ class IDPhotoModule(BaseModule):
         """
         
         # 重置按钮
-        reset_btn = QPushButton("🔄 重置默认值")
+        reset_btn = QPushButton(f"🔄 {tr('common.reset_defaults')}")
         reset_btn.setStyleSheet(reset_button_style)
         def reset_values():
             enable_check.setChecked(False)
-            paper_combo.setCurrentText('六寸')
+            self._set_combo_current_data(paper_combo, '6inch')
         reset_btn.clicked.connect(reset_values)
         button_layout.addWidget(reset_btn)
         
         button_layout.addStretch()
         
         # 确定按钮
-        confirm_btn = QPushButton("✅ 确定应用")
+        confirm_btn = QPushButton(f"✅ {tr('common.apply')}")
         confirm_btn.setStyleSheet(button_style)
         confirm_btn.clicked.connect(lambda: [
             self.print_params.update({
                 'enabled': enable_check.isChecked(),
-                'paper_size': paper_combo.currentText(),
+                'paper_size': paper_combo.currentData() or '6inch',
             }),
             dialog.accept()
         ])
@@ -3799,7 +3890,7 @@ class IDPhotoModule(BaseModule):
         from ui.custom_widgets import StyledComboBox
         
         dialog = QDialog()
-        dialog.setWindowTitle("水印设置")
+        dialog.setWindowTitle(tr("id_photo.watermark_dialog_title"))
         dialog.setMinimumWidth(520)
         dialog.setStyleSheet("""
             QDialog {
@@ -3891,7 +3982,7 @@ class IDPhotoModule(BaseModule):
         enable_row_layout.setContentsMargins(0, 0, 0, 0)
         enable_row_layout.setSpacing(12)
         
-        enable_check = QCheckBox("💧 启用水印")
+        enable_check = QCheckBox(f"💧 {tr('id_photo.watermark_enable')}")
         enable_check.setChecked(self.watermark_params.get('enabled', False))
         enable_check.setStyleSheet("font-size: 15px; font-weight: bold; color: hsl(221.2, 83.2%, 53.3%);")
         enable_row_layout.addWidget(enable_check)
@@ -3905,13 +3996,13 @@ class IDPhotoModule(BaseModule):
         type_row_layout.setContentsMargins(0, 0, 0, 0)
         type_row_layout.setSpacing(12)
         
-        type_label = QLabel("💧 水印类型:")
+        type_label = QLabel(f"💧 {tr('id_photo.watermark_type')}")
         type_label.setStyleSheet(label_style)
         type_row_layout.addWidget(type_label)
         
         type_group = QButtonGroup()
-        type_text_radio = QRadioButton("文本水印")
-        type_image_radio = QRadioButton("图片水印")
+        type_text_radio = QRadioButton(tr("id_photo.watermark_type_text"))
+        type_image_radio = QRadioButton(tr("id_photo.watermark_type_image"))
         type_group.addButton(type_text_radio)
         type_group.addButton(type_image_radio)
         
@@ -3937,14 +4028,14 @@ class IDPhotoModule(BaseModule):
         text_row = QWidget()
         text_row_layout = QHBoxLayout(text_row)
         text_row_layout.setContentsMargins(0, 0, 0, 0)
-        text_label = QLabel("💬 文本内容:")
+        text_label = QLabel(f"💬 {tr('id_photo.watermark_text')}")
         text_label.setStyleSheet(label_style)
         text_label.setFixedWidth(120)
         text_row_layout.addWidget(text_label)
         
         self.text_input = QLineEdit()
         self.text_input.setText(self.watermark_params.get('text', ''))
-        self.text_input.setPlaceholderText("请输入水印文字")
+        self.text_input.setPlaceholderText(tr("id_photo.watermark_text_placeholder"))
         self.text_input.setMinimumHeight(32)
         self.text_input.setStyleSheet("background-color: hsl(224, 71.4%, 4.1%); border: 1px solid hsl(217.2, 32.6%, 17.5%); border-radius: 6px; padding: 6px 8px; color: hsl(213, 31%, 91%); font-size: 13px;")
         text_row_layout.addWidget(self.text_input)
@@ -3954,7 +4045,7 @@ class IDPhotoModule(BaseModule):
         font_family_row = QWidget()
         font_family_row_layout = QHBoxLayout(font_family_row)
         font_family_row_layout.setContentsMargins(0, 0, 0, 0)
-        font_family_label = QLabel("🆎 字体:")
+        font_family_label = QLabel(f"🆎 {tr('id_photo.watermark_font')}")
         font_family_label.setStyleSheet(label_style)
         font_family_label.setFixedWidth(120)
         font_family_row_layout.addWidget(font_family_label)
@@ -4005,7 +4096,7 @@ class IDPhotoModule(BaseModule):
         font_row = QWidget()
         font_row_layout = QHBoxLayout(font_row)
         font_row_layout.setContentsMargins(0, 0, 0, 0)
-        font_label = QLabel("📏 字体大小:")
+        font_label = QLabel(f"📏 {tr('id_photo.watermark_font_size')}")
         font_label.setStyleSheet(label_style)
         font_label.setFixedWidth(120)
         font_row_layout.addWidget(font_label)
@@ -4030,7 +4121,7 @@ class IDPhotoModule(BaseModule):
         color_row = QWidget()
         color_row_layout = QHBoxLayout(color_row)
         color_row_layout.setContentsMargins(0, 0, 0, 0)
-        color_label = QLabel("🎨 字体颜色:")
+        color_label = QLabel(f"🎨 {tr('id_photo.watermark_font_color')}")
         color_label.setStyleSheet(label_style)
         color_label.setFixedWidth(120)
         color_row_layout.addWidget(color_label)
@@ -4045,7 +4136,7 @@ class IDPhotoModule(BaseModule):
         # 选择颜色按钮
         def choose_font_color():
             color_dialog = QColorDialog(dialog)
-            color_dialog.setWindowTitle("选择字体颜色")
+            color_dialog.setWindowTitle(tr("id_photo.watermark_choose_font_color"))
             color_dialog.setCurrentColor(QColor(current_font_color))
             # 设置中文界面
             color_dialog.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)
@@ -4096,7 +4187,7 @@ class IDPhotoModule(BaseModule):
                     color_display.setStyleSheet(f"background-color: {hex_color}; border: 1px solid hsl(217.2, 32.6%, 17.5%); border-radius: 6px;")
                     color_display.setProperty('selected_color', hex_color)
         
-        color_btn = QPushButton("🎫 选择颜色")
+        color_btn = QPushButton(f"🎫 {tr('id_photo.watermark_choose_color')}")
         color_btn.setMinimumHeight(32)
         color_btn.setStyleSheet("""
             QPushButton {
@@ -4125,7 +4216,7 @@ class IDPhotoModule(BaseModule):
         text_opacity_row = QWidget()
         text_opacity_row_layout = QHBoxLayout(text_opacity_row)
         text_opacity_row_layout.setContentsMargins(0, 0, 0, 0)
-        text_opacity_label = QLabel("👁️ 透明度:")
+        text_opacity_label = QLabel(f"👁️ {tr('id_photo.watermark_opacity')}")
         text_opacity_label.setStyleSheet(label_style)
         text_opacity_label.setFixedWidth(120)
         text_opacity_row_layout.addWidget(text_opacity_label)
@@ -4150,17 +4241,17 @@ class IDPhotoModule(BaseModule):
         text_position_row = QWidget()
         text_position_row_layout = QHBoxLayout(text_position_row)
         text_position_row_layout.setContentsMargins(0, 0, 0, 0)
-        text_position_label = QLabel("📍 位置:")
+        text_position_label = QLabel(f"📍 {tr('id_photo.watermark_position')}")
         text_position_label.setStyleSheet(label_style)
         text_position_label.setFixedWidth(120)
         text_position_row_layout.addWidget(text_position_label)
         
         text_position_group = QButtonGroup()
-        text_position_top_left_radio = QRadioButton("左上")
-        text_position_top_right_radio = QRadioButton("右上")
-        text_position_bottom_left_radio = QRadioButton("左下")
-        text_position_bottom_right_radio = QRadioButton("右下")
-        text_position_tiled_radio = QRadioButton("平铺")
+        text_position_top_left_radio = QRadioButton(tr("id_photo.watermark_top_left"))
+        text_position_top_right_radio = QRadioButton(tr("id_photo.watermark_top_right"))
+        text_position_bottom_left_radio = QRadioButton(tr("id_photo.watermark_bottom_left"))
+        text_position_bottom_right_radio = QRadioButton(tr("id_photo.watermark_bottom_right"))
+        text_position_tiled_radio = QRadioButton(tr("id_photo.watermark_tiled"))
         text_position_group.addButton(text_position_top_left_radio)
         text_position_group.addButton(text_position_top_right_radio)
         text_position_group.addButton(text_position_bottom_left_radio)
@@ -4202,21 +4293,21 @@ class IDPhotoModule(BaseModule):
         path_row = QWidget()
         path_row_layout = QHBoxLayout(path_row)
         path_row_layout.setContentsMargins(0, 0, 0, 0)
-        path_label = QLabel("🖼️ 图片路径:")
+        path_label = QLabel(f"🖼️ {tr('id_photo.watermark_image_path')}")
         path_label.setStyleSheet(label_style)
         path_label.setFixedWidth(120)
         path_row_layout.addWidget(path_label)
         
         self.path_input = QLineEdit()
         self.path_input.setText(self.watermark_params.get('image_path', '') or '')
-        self.path_input.setPlaceholderText("选择水印图片")
+        self.path_input.setPlaceholderText(tr("id_photo.watermark_image_placeholder"))
         self.path_input.setMinimumHeight(32)
         self.path_input.setStyleSheet("background-color: hsl(224, 71.4%, 4.1%); border: 1px solid hsl(217.2, 32.6%, 17.5%); border-radius: 6px; padding: 6px 8px; color: hsl(213, 31%, 91%); font-size: 13px;")
         path_row_layout.addWidget(self.path_input)
         image_params_layout.addWidget(path_row)
         
         # 选择图片按钮
-        select_btn = QPushButton("📁 选择图片")
+        select_btn = QPushButton(f"📁 {tr('id_photo.watermark_select_image')}")
         select_btn.setMinimumHeight(32)
         select_btn.setStyleSheet("""
             QPushButton {
@@ -4236,7 +4327,7 @@ class IDPhotoModule(BaseModule):
         def select_watermark_image():
             from PyQt6.QtWidgets import QFileDialog
             file_path, _ = QFileDialog.getOpenFileName(
-                dialog, "选择水印图片", "", 
+                dialog, tr("id_photo.watermark_select_image"), "", 
                 "Image Files (*.png *.jpg *.jpeg *.bmp)"
             )
             if file_path:
@@ -4249,7 +4340,7 @@ class IDPhotoModule(BaseModule):
         image_opacity_row = QWidget()
         image_opacity_row_layout = QHBoxLayout(image_opacity_row)
         image_opacity_row_layout.setContentsMargins(0, 0, 0, 0)
-        image_opacity_label = QLabel("👁️ 透明度:")
+        image_opacity_label = QLabel(f"👁️ {tr('id_photo.watermark_opacity')}")
         image_opacity_label.setStyleSheet(label_style)
         image_opacity_label.setFixedWidth(120)
         image_opacity_row_layout.addWidget(image_opacity_label)
@@ -4274,7 +4365,7 @@ class IDPhotoModule(BaseModule):
         image_size_row = QWidget()
         image_size_row_layout = QHBoxLayout(image_size_row)
         image_size_row_layout.setContentsMargins(0, 0, 0, 0)
-        image_size_label = QLabel("📐 大小:")
+        image_size_label = QLabel(f"📐 {tr('id_photo.watermark_size')}")
         image_size_label.setStyleSheet(label_style)
         image_size_label.setFixedWidth(120)
         image_size_row_layout.addWidget(image_size_label)
@@ -4301,17 +4392,17 @@ class IDPhotoModule(BaseModule):
         image_position_row = QWidget()
         image_position_row_layout = QHBoxLayout(image_position_row)
         image_position_row_layout.setContentsMargins(0, 0, 0, 0)
-        image_position_label = QLabel("📍 位置:")
+        image_position_label = QLabel(f"📍 {tr('id_photo.watermark_position')}")
         image_position_label.setStyleSheet(label_style)
         image_position_label.setFixedWidth(120)
         image_position_row_layout.addWidget(image_position_label)
         
         image_position_group = QButtonGroup()
-        image_position_top_left_radio = QRadioButton("左上")
-        image_position_top_right_radio = QRadioButton("右上")
-        image_position_bottom_left_radio = QRadioButton("左下")
-        image_position_bottom_right_radio = QRadioButton("右下")
-        image_position_tiled_radio = QRadioButton("平铺")
+        image_position_top_left_radio = QRadioButton(tr("id_photo.watermark_top_left"))
+        image_position_top_right_radio = QRadioButton(tr("id_photo.watermark_top_right"))
+        image_position_bottom_left_radio = QRadioButton(tr("id_photo.watermark_bottom_left"))
+        image_position_bottom_right_radio = QRadioButton(tr("id_photo.watermark_bottom_right"))
+        image_position_tiled_radio = QRadioButton(tr("id_photo.watermark_tiled"))
         image_position_group.addButton(image_position_top_left_radio)
         image_position_group.addButton(image_position_top_right_radio)
         image_position_group.addButton(image_position_bottom_left_radio)
@@ -4379,14 +4470,14 @@ class IDPhotoModule(BaseModule):
         """
         
         # 重置按钮
-        reset_btn = QPushButton("🔄 重置")
+        reset_btn = QPushButton(f"🔄 {tr('common.reset')}")
         reset_btn.setStyleSheet(button_style.replace("hsl(221.2, 83.2%, 53.3%)", "hsl(0, 0%, 45%)").replace("hsl(221.2, 83.2%, 60%)", "hsl(0, 0%, 55%)"))
         button_layout.addWidget(reset_btn)
         
         button_layout.addStretch()
         
         # 确定按钮
-        confirm_btn = QPushButton("✅ 确定")
+        confirm_btn = QPushButton(f"✅ {tr('common.confirm')}")
         confirm_btn.setStyleSheet(button_style)
         button_layout.addWidget(confirm_btn)
         
@@ -4416,11 +4507,15 @@ class IDPhotoModule(BaseModule):
                 image_path = self.path_input.text().strip()
                 if not image_path:
                     from ui.custom_widgets import StyledMessageBox
-                    StyledMessageBox.warning(dialog, "提示", "请选择水印图片")
+                    StyledMessageBox.warning(dialog, tr("common.tip"), tr("id_photo.watermark_image_missing"))
                     return
                 if not os.path.exists(image_path):
                     from ui.custom_widgets import StyledMessageBox
-                    StyledMessageBox.warning(dialog, "提示", f"水印图片不存在：{image_path}")
+                    StyledMessageBox.warning(
+                        dialog,
+                        tr("common.tip"),
+                        tr("id_photo.watermark_image_not_found", image_path=image_path),
+                    )
                     return
             
             is_text = type_text_radio.isChecked()
@@ -4483,7 +4578,7 @@ class IDPhotoModule(BaseModule):
         from PyQt6.QtCore import Qt
         
         dialog = QDialog()
-        dialog.setWindowTitle("输出设置")
+        dialog.setWindowTitle(tr("id_photo.output_dialog_title"))
         dialog.setMinimumWidth(500)
         dialog.setStyleSheet("""
             QDialog {
@@ -4537,7 +4632,7 @@ class IDPhotoModule(BaseModule):
         value_style = "color: hsl(221.2, 83.2%, 53.3%); font-size: 13px; font-weight: bold;"
         
         # 启用KB大小控制
-        kb_enable_check = QCheckBox("📊 启用KB大小控制")
+        kb_enable_check = QCheckBox(f"📊 {tr('id_photo.output_kb_enable')}")
         kb_enable_check.setChecked(self.output_params.get('kb_enabled', False))
         kb_enable_check.setStyleSheet("font-size: 14px; font-weight: bold;")
         layout.addWidget(kb_enable_check)
@@ -4552,7 +4647,7 @@ class IDPhotoModule(BaseModule):
         kb_row = QWidget()
         kb_row_layout = QHBoxLayout(kb_row)
         kb_row_layout.setContentsMargins(0, 0, 0, 0)
-        kb_label = QLabel("🎯 目标大小:")
+        kb_label = QLabel(f"🎯 {tr('id_photo.output_target_size')}")
         kb_label.setStyleSheet(label_style)
         kb_label.setFixedWidth(100)
         kb_row_layout.addWidget(kb_label)
@@ -4573,13 +4668,13 @@ class IDPhotoModule(BaseModule):
         kb_params_layout.addWidget(kb_row)
         
         # KB模式
-        mode_label = QLabel("🔧 压缩模式:")
+        mode_label = QLabel(f"🔧 {tr('id_photo.output_compression_mode')}")
         mode_label.setStyleSheet(label_style)
         kb_params_layout.addWidget(mode_label)
         
         mode_group = QButtonGroup()
-        mode_max_radio = QRadioButton("不大于目标大小")
-        mode_exact_radio = QRadioButton("精确等于目标大小（填充空字节)")
+        mode_max_radio = QRadioButton(tr("id_photo.output_mode_max"))
+        mode_exact_radio = QRadioButton(tr("id_photo.output_mode_exact"))
         mode_group.addButton(mode_max_radio)
         mode_group.addButton(mode_exact_radio)
         
@@ -4601,7 +4696,7 @@ class IDPhotoModule(BaseModule):
         layout.addWidget(separator)
         
         # 启用DPI设置
-        dpi_enable_check = QCheckBox("🖨️ 启用DPI设置（打印清晰度）")
+        dpi_enable_check = QCheckBox(f"🖨️ {tr('id_photo.output_dpi_enable')}")
         dpi_enable_check.setChecked(self.output_params.get('dpi_enabled', False))
         dpi_enable_check.setStyleSheet("font-size: 14px; font-weight: bold;")
         layout.addWidget(dpi_enable_check)
@@ -4614,8 +4709,8 @@ class IDPhotoModule(BaseModule):
         
         # DPI选择
         dpi_group = QButtonGroup()
-        dpi_300_radio = QRadioButton("300 DPI（标准打印）")
-        dpi_600_radio = QRadioButton("600 DPI（高质量打印）")
+        dpi_300_radio = QRadioButton(tr("id_photo.output_dpi_300"))
+        dpi_600_radio = QRadioButton(tr("id_photo.output_dpi_600"))
         dpi_group.addButton(dpi_300_radio)
         dpi_group.addButton(dpi_600_radio)
         
@@ -4665,14 +4760,14 @@ class IDPhotoModule(BaseModule):
         """
         
         # 重置按钮
-        reset_btn = QPushButton("🔄 重置")
+        reset_btn = QPushButton(f"🔄 {tr('common.reset')}")
         reset_btn.setStyleSheet(button_style.replace("hsl(221.2, 83.2%, 53.3%)", "hsl(0, 0%, 45%)").replace("hsl(221.2, 83.2%, 60%)", "hsl(0, 0%, 55%)"))
         button_layout.addWidget(reset_btn)
         
         button_layout.addStretch()
         
         # 确定按钮
-        confirm_btn = QPushButton("✅ 确定")
+        confirm_btn = QPushButton(f"✅ {tr('common.confirm')}")
         confirm_btn.setStyleSheet(button_style)
         button_layout.addWidget(confirm_btn)
         
@@ -4699,468 +4794,6 @@ class IDPhotoModule(BaseModule):
             dialog.accept()
         ])
         
-        dialog.exec()
-    
-    def _apply_watermark(self, img_rgba: np.ndarray) -> np.ndarray:
-        
-        label_style = "color: hsl(215, 20.2%, 65.1%); font-size: 13px;"
-        value_label_style = "color: hsl(213, 31%, 91%); font-size: 13px; font-weight: bold;"
-        
-        # 启用水印复选框
-        enable_check = QCheckBox("启用水印")
-        enable_check.setChecked(self.watermark_params.get('enabled', False))
-        enable_check.setStyleSheet("font-size: 14px; font-weight: bold; color: hsl(221.2, 83.2%, 53.3%);")
-        layout.addWidget(enable_check)
-        
-        # 水印类型选择
-        type_row = QWidget()
-        type_layout = QHBoxLayout(type_row)
-        type_layout.setContentsMargins(0, 0, 0, 0)
-        type_label = QLabel("水印类型:")
-        type_label.setStyleSheet(label_style)
-        type_layout.addWidget(type_label)
-        
-        type_group = QButtonGroup(dialog)
-        text_radio = QRadioButton("文字水印")
-        image_radio = QRadioButton("图片水印")
-        type_group.addButton(text_radio)
-        type_group.addButton(image_radio)
-        
-        if self.watermark_params.get('type', 'text') == 'text':
-            text_radio.setChecked(True)
-        else:
-            image_radio.setChecked(True)
-        
-        type_layout.addWidget(text_radio)
-        type_layout.addWidget(image_radio)
-        type_layout.addStretch()
-        layout.addWidget(type_row)
-        
-        # 创建一个堆叠容器，用于切换文字和图片参数
-        from PyQt6.QtWidgets import QStackedWidget
-        params_stack = QStackedWidget()
-        
-        # === 文字水印参数 ===
-        text_params_widget = QWidget()
-        text_params_layout = QVBoxLayout(text_params_widget)
-        text_params_layout.setContentsMargins(0, 0, 0, 0)
-        text_params_layout.setSpacing(8)  # 减小间距
-        
-        # 水印文字
-        text_row = QWidget()
-        text_row_layout = QHBoxLayout(text_row)
-        text_row_layout.setContentsMargins(0, 0, 0, 0)
-        text_label = QLabel("📝 水印文字:")
-        text_label.setStyleSheet(label_style)
-        text_label.setFixedWidth(100)
-        text_row_layout.addWidget(text_label)
-        
-        text_edit = QLineEdit(self.watermark_params.get('text', 'HivisionIDPhoto'))
-        text_edit.setPlaceholderText("请输入水印文字")
-        text_row_layout.addWidget(text_edit)
-        text_params_layout.addWidget(text_row)
-        
-        # 字体大小 (10-100)
-        size_row = QWidget()
-        size_layout = QHBoxLayout(size_row)
-        size_layout.setContentsMargins(0, 0, 0, 0)
-        size_label = QLabel("🔤 字体大小:")
-        size_label.setStyleSheet(label_style)
-        size_label.setFixedWidth(100)
-        size_layout.addWidget(size_label)
-        
-        size_slider = QSlider(Qt.Orientation.Horizontal)
-        size_slider.setRange(10, 100)
-        size_slider.setValue(self.watermark_params.get('size', 20))
-        size_slider.setStyleSheet(slider_style)
-        size_layout.addWidget(size_slider)
-        
-        size_value = QLabel(str(self.watermark_params.get('size', 20)))
-        size_value.setStyleSheet(value_label_style)
-        size_value.setFixedWidth(40)
-        size_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        size_layout.addWidget(size_value)
-        size_layout.setSpacing(8)
-        size_slider.valueChanged.connect(lambda v: size_value.setText(str(v)))
-        text_params_layout.addWidget(size_row)
-        
-        # 透明度 (0-1)
-        opacity_row = QWidget()
-        opacity_layout = QHBoxLayout(opacity_row)
-        opacity_layout.setContentsMargins(0, 0, 0, 0)
-        opacity_label = QLabel("🔆 透明度:")
-        opacity_label.setStyleSheet(label_style)
-        opacity_label.setFixedWidth(100)
-        opacity_layout.addWidget(opacity_label)
-        
-        opacity_slider = QSlider(Qt.Orientation.Horizontal)
-        opacity_slider.setRange(0, 100)
-        opacity_slider.setValue(int(self.watermark_params.get('opacity', 0.15) * 100))
-        opacity_slider.setStyleSheet(slider_style)
-        opacity_layout.addWidget(opacity_slider)
-        
-        opacity_value = QLabel(f"{self.watermark_params.get('opacity', 0.15):.2f}")
-        opacity_value.setStyleSheet(value_label_style)
-        opacity_value.setFixedWidth(40)
-        opacity_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        opacity_layout.addWidget(opacity_value)
-        opacity_layout.setSpacing(8)
-        opacity_slider.valueChanged.connect(lambda v: opacity_value.setText(f"{v/100:.2f}"))
-        text_params_layout.addWidget(opacity_row)
-        
-        # 角度 (0-360)
-        angle_row = QWidget()
-        angle_layout = QHBoxLayout(angle_row)
-        angle_layout.setContentsMargins(0, 0, 0, 0)
-        angle_label = QLabel("🔄 角度:")
-        angle_label.setStyleSheet(label_style)
-        angle_label.setFixedWidth(100)
-        angle_layout.addWidget(angle_label)
-        
-        angle_slider = QSlider(Qt.Orientation.Horizontal)
-        angle_slider.setRange(0, 360)
-        angle_slider.setValue(self.watermark_params.get('angle', 30))
-        angle_slider.setStyleSheet(slider_style)
-        angle_layout.addWidget(angle_slider)
-        
-        angle_value = QLabel(str(self.watermark_params.get('angle', 30)))
-        angle_value.setStyleSheet(value_label_style)
-        angle_value.setFixedWidth(40)
-        angle_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        angle_layout.addWidget(angle_value)
-        angle_layout.setSpacing(8)
-        angle_slider.valueChanged.connect(lambda v: angle_value.setText(str(v)))
-        text_params_layout.addWidget(angle_row)
-        
-        # 间距 (10-200)
-        space_row = QWidget()
-        space_layout = QHBoxLayout(space_row)
-        space_layout.setContentsMargins(0, 0, 0, 0)
-        space_label = QLabel("📏 间距:")
-        space_label.setStyleSheet(label_style)
-        space_label.setFixedWidth(100)
-        space_layout.addWidget(space_label)
-        
-        space_slider = QSlider(Qt.Orientation.Horizontal)
-        space_slider.setRange(10, 200)
-        space_slider.setValue(self.watermark_params.get('space', 25))
-        space_slider.setStyleSheet(slider_style)
-        space_layout.addWidget(space_slider)
-        
-        space_value = QLabel(str(self.watermark_params.get('space', 25)))
-        space_value.setStyleSheet(value_label_style)
-        space_value.setFixedWidth(40)
-        space_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        space_layout.addWidget(space_value)
-        space_layout.setSpacing(8)
-        space_slider.valueChanged.connect(lambda v: space_value.setText(str(v)))
-        text_params_layout.addWidget(space_row)
-        
-        # 颜色
-        color_row = QWidget()
-        color_layout = QHBoxLayout(color_row)
-        color_layout.setContentsMargins(0, 0, 0, 0)
-        color_label = QLabel("🎨 颜色:")
-        color_label.setStyleSheet(label_style)
-        color_label.setFixedWidth(100)
-        color_layout.addWidget(color_label)
-        
-        from PyQt6.QtWidgets import QColorDialog
-        from PyQt6.QtGui import QColor
-        
-        color_display = QWidget()
-        color_display.setFixedSize(100, 30)
-        current_color = self.watermark_params.get('color', '#8B8B1B')
-        color_display.setStyleSheet(f"background-color: {current_color}; border: 1px solid hsl(217.2, 32.6%, 17.5%); border-radius: 4px;")
-        color_layout.addWidget(color_display)
-        
-        def choose_color():
-            color_dialog = QColorDialog(dialog)
-            color_dialog.setWindowTitle("选择水印颜色")
-            color_dialog.setCurrentColor(QColor(current_color))
-            # 设置中文界面
-            color_dialog.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)
-            
-            # 美化样式
-            color_dialog.setStyleSheet("""
-                QColorDialog {
-                    background-color: hsl(222.2, 84%, 4.9%);
-                    color: hsl(213, 31%, 91%);
-                }
-                QLabel {
-                    color: hsl(213, 31%, 91%);
-                    font-size: 13px;
-                }
-                QPushButton {
-                    background-color: hsl(217.2, 32.6%, 17.5%);
-                    color: hsl(213, 31%, 91%);
-                    border: 1px solid hsl(217.2, 32.6%, 17.5%);
-                    border-radius: 6px;
-                    padding: 8px 16px;
-                    font-weight: 500;
-                    min-width: 80px;
-                }
-                QPushButton:hover {
-                    background-color: hsl(221.2, 83.2%, 53.3%);
-                    border-color: hsl(221.2, 83.2%, 53.3%);
-                }
-                QSpinBox, QLineEdit {
-                    background-color: hsl(224, 71.4%, 4.1%);
-                    border: 1px solid hsl(217.2, 32.6%, 17.5%);
-                    border-radius: 4px;
-                    padding: 6px;
-                    color: hsl(213, 31%, 91%);
-                }
-                QSpinBox:focus, QLineEdit:focus {
-                    border-color: hsl(221.2, 83.2%, 53.3%);
-                }
-            """)
-            
-            # 翻译为中文
-            translate_color_dialog_to_chinese(color_dialog)
-            
-            if color_dialog.exec() == QDialog.DialogCode.Accepted:
-                color = color_dialog.currentColor()
-                if color.isValid():
-                    hex_color = color.name()
-                    color_display.setStyleSheet(f"background-color: {hex_color}; border: 1px solid hsl(217.2, 32.6%, 17.5%); border-radius: 4px;")
-                    # 保存到临时变量
-                    color_display.setProperty('color', hex_color)
-        
-        color_btn = QPushButton("选择颜色")
-        color_btn.setStyleSheet("""
-            QPushButton {
-                background-color: hsl(221.2, 83.2%, 53.3%);
-                border: none;
-                border-radius: 4px;
-                padding: 6px 16px;
-                color: white;
-                font-size: 13px;
-            }
-            QPushButton:hover {
-                background-color: hsl(221.2, 83.2%, 60%);
-            }
-        """)
-        color_btn.clicked.connect(choose_color)
-        color_layout.addWidget(color_btn)
-        color_layout.addStretch()
-        text_params_layout.addWidget(color_row)
-        
-        # 添加到堆叠容器
-        params_stack.addWidget(text_params_widget)
-        
-        # === 图片水印参数 ===
-        image_params_widget = QWidget()
-        image_params_layout = QVBoxLayout(image_params_widget)
-        image_params_layout.setContentsMargins(0, 0, 0, 0)
-        image_params_layout.setSpacing(8)  # 减小间距
-        
-        # 水印图片路径
-        image_path_row = QWidget()
-        image_path_layout = QHBoxLayout(image_path_row)
-        image_path_layout.setContentsMargins(0, 0, 0, 0)
-        image_path_label = QLabel("🖼️ 水印图片:")
-        image_path_label.setStyleSheet(label_style)
-        image_path_label.setFixedWidth(100)
-        image_path_layout.addWidget(image_path_label)
-        
-        image_path_edit = QLineEdit(self.watermark_params.get('image_path', '') or '')
-        image_path_edit.setPlaceholderText("选择水印图片")
-        image_path_layout.addWidget(image_path_edit)
-        
-        browse_btn = QPushButton("浏览")
-        browse_btn.setStyleSheet("""
-            QPushButton {
-                background-color: hsl(221.2, 83.2%, 53.3%);
-                border: none;
-                border-radius: 4px;
-                padding: 6px 16px;
-                color: white;
-                font-size: 13px;
-            }
-            QPushButton:hover {
-                background-color: hsl(221.2, 83.2%, 60%);
-            }
-        """)
-        
-        def browse_image():
-            file_path, _ = QFileDialog.getOpenFileName(
-                dialog, "选择水印图片", "", 
-                "Image Files (*.png *.jpg *.jpeg *.bmp)"
-            )
-            if file_path:
-                image_path_edit.setText(file_path)
-        
-        browse_btn.clicked.connect(browse_image)
-        image_path_layout.addWidget(browse_btn)
-        image_params_layout.addWidget(image_path_row)
-        
-        # 图片透明度
-        img_opacity_row = QWidget()
-        img_opacity_layout = QHBoxLayout(img_opacity_row)
-        img_opacity_layout.setContentsMargins(0, 0, 0, 0)
-        img_opacity_label = QLabel("🔆 透明度:")
-        img_opacity_label.setStyleSheet(label_style)
-        img_opacity_label.setFixedWidth(100)
-        img_opacity_layout.addWidget(img_opacity_label)
-        
-        img_opacity_slider = QSlider(Qt.Orientation.Horizontal)
-        img_opacity_slider.setRange(0, 100)
-        img_opacity_slider.setValue(int(self.watermark_params.get('image_opacity', 0.3) * 100))
-        img_opacity_slider.setStyleSheet(slider_style)
-        img_opacity_layout.addWidget(img_opacity_slider)
-        
-        img_opacity_value = QLabel(f"{self.watermark_params.get('image_opacity', 0.3):.2f}")
-        img_opacity_value.setStyleSheet(value_label_style)
-        img_opacity_value.setFixedWidth(40)
-        img_opacity_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        img_opacity_layout.addWidget(img_opacity_value)
-        img_opacity_layout.setSpacing(8)
-        img_opacity_slider.valueChanged.connect(lambda v: img_opacity_value.setText(f"{v/100:.2f}"))
-        image_params_layout.addWidget(img_opacity_row)
-        
-        # 图片缩放
-        img_scale_row = QWidget()
-        img_scale_layout = QHBoxLayout(img_scale_row)
-        img_scale_layout.setContentsMargins(0, 0, 0, 0)
-        img_scale_label = QLabel("🔍 缩放比例:")
-        img_scale_label.setStyleSheet(label_style)
-        img_scale_label.setFixedWidth(100)
-        img_scale_layout.addWidget(img_scale_label)
-        
-        img_scale_slider = QSlider(Qt.Orientation.Horizontal)
-        img_scale_slider.setRange(5, 50)  # 5%-50%
-        img_scale_slider.setValue(int(self.watermark_params.get('image_scale', 0.1) * 100))
-        img_scale_slider.setStyleSheet(slider_style)
-        img_scale_layout.addWidget(img_scale_slider)
-        
-        img_scale_value = QLabel(f"{self.watermark_params.get('image_scale', 0.1):.2f}")
-        img_scale_value.setStyleSheet(value_label_style)
-        img_scale_value.setFixedWidth(40)
-        img_scale_value.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        img_scale_layout.addWidget(img_scale_value)
-        img_scale_layout.setSpacing(8)
-        img_scale_slider.valueChanged.connect(lambda v: img_scale_value.setText(f"{v/100:.2f}"))
-        image_params_layout.addWidget(img_scale_row)
-        
-        # 去背景色复选框
-        img_remove_bg_check = QCheckBox("✨ 去除背景色（使用透明背景）")
-        img_remove_bg_check.setChecked(self.watermark_params.get('image_remove_bg', False))
-        img_remove_bg_check.setStyleSheet("font-size: 13px; color: hsl(215, 20.2%, 65.1%);")
-        image_params_layout.addWidget(img_remove_bg_check)
-        
-        # 添加到堆叠容器
-        params_stack.addWidget(image_params_widget)
-        
-        # 将堆叠容器添加到主布局
-        layout.addWidget(params_stack)
-        
-        # 根据类型显示/隐藏参数
-        def toggle_params():
-            if text_radio.isChecked():
-                params_stack.setCurrentIndex(0)  # 显示文字水印
-            else:
-                params_stack.setCurrentIndex(1)  # 显示图片水印
-        
-        # 根据启用状态控制参数区域
-        def toggle_enable():
-            enabled = enable_check.isChecked()
-            text_radio.setEnabled(enabled)
-            image_radio.setEnabled(enabled)
-            params_stack.setEnabled(enabled)
-        
-        enable_check.toggled.connect(toggle_enable)
-        text_radio.toggled.connect(toggle_params)
-        toggle_enable()  # 初始化状态
-        toggle_params()
-        
-        # 选择图片按钮
-        select_btn = QPushButton("📁 选择图片")
-        select_btn.setMinimumHeight(36)
-        select_btn.setStyleSheet("""
-            QPushButton {
-                background-color: hsl(221.2, 83.2%, 53.3%);
-                border: none;
-                border-radius: 6px;
-                padding: 8px 20px;
-                color: white;
-                font-size: 13px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: hsl(221.2, 83.2%, 60%);
-            }
-        """)
-        
-        # 按钮行
-        button_row = QWidget()
-        button_layout = QHBoxLayout(button_row)
-        button_layout.setContentsMargins(0, 10, 0, 0)
-        button_layout.setSpacing(10)
-        
-        button_style = """
-            QPushButton {
-                background-color: hsl(221.2, 83.2%, 53.3%);
-                border: none;
-                border-radius: 6px;
-                padding: 8px 20px;
-                color: white;
-                font-size: 13px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: hsl(221.2, 83.2%, 60%);
-            }
-            QPushButton:pressed {
-                background-color: hsl(221.2, 83.2%, 45%);
-            }
-        """
-        
-        reset_btn = QPushButton("🔄 重置")
-        reset_btn.setStyleSheet(button_style)
-        reset_btn.clicked.connect(lambda: [
-            enable_check.setChecked(False),
-            text_radio.setChecked(True),
-            text_edit.setText('鲲穹AI'),
-            size_slider.setValue(20),
-            opacity_slider.setValue(15),
-            angle_slider.setValue(30),
-            space_slider.setValue(25),
-            color_display.setStyleSheet("background-color: #8B8B1B; border: 1px solid hsl(217.2, 32.6%, 17.5%); border-radius: 4px;"),
-            color_display.setProperty('color', '#8B8B1B'),
-            image_path_edit.setText(''),
-            img_opacity_slider.setValue(30),
-            img_scale_slider.setValue(10),
-            img_remove_bg_check.setChecked(False),
-        ])
-        button_layout.addWidget(reset_btn)
-        
-        button_layout.addStretch()
-        
-        confirm_btn = QPushButton("✅ 确定")
-        confirm_btn.setStyleSheet(button_style)
-        confirm_btn.clicked.connect(lambda: [
-            self.watermark_params.update({
-                'enabled': enable_check.isChecked(),
-                'type': 'text' if text_radio.isChecked() else 'image',
-                'text': text_edit.text(),
-                'size': size_slider.value(),
-                'opacity': opacity_slider.value() / 100,
-                'angle': angle_slider.value(),
-                'color': color_display.property('color') or '#8B8B1B',
-                'space': space_slider.value(),
-                'image_path': image_path_edit.text() or None,
-                'image_opacity': img_opacity_slider.value() / 100,
-                'image_scale': img_scale_slider.value() / 100,
-                'image_remove_bg': img_remove_bg_check.isChecked(),
-            }),
-            dialog.accept()
-        ])
-        button_layout.addWidget(confirm_btn)
-        
-        layout.addWidget(button_row)
-        
-        # 显示对话框
         dialog.exec()
     
     def _apply_watermark(self, img_rgba: np.ndarray) -> np.ndarray:

@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QPainter, QPainterPath, QColor, QPen, QBrush, QFont, QMouseEvent
 from PyQt6.QtCore import Qt, QRect, QPoint, QTimer
+from i18n import tr
 
 
 class StyledMessageBox(QDialog):
@@ -40,8 +41,10 @@ class StyledMessageBox(QDialog):
         },
     }
     
-    def __init__(self, parent=None, title="提示", message="", msg_type="info", auto_close=0):
+    def __init__(self, parent=None, title=None, message="", msg_type="info", auto_close=0):
         super().__init__(parent)
+        if title is None:
+            title = tr("common.tip")
         self.setWindowTitle(title)
         self.setModal(True)
         self.setMinimumWidth(360)
@@ -135,7 +138,7 @@ class StyledMessageBox(QDialog):
         btn_layout.addStretch()
         
         # 确定按钮
-        ok_btn = QPushButton("确定")
+        ok_btn = QPushButton(tr("common.ok"))
         ok_btn.setFixedSize(90, 38)
         ok_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         ok_btn.setStyleSheet(f"""
@@ -551,7 +554,7 @@ class ImageResizeDialog(QDialog):
         self.selected_scale = 1.0  # 缩放比例（如0.5表示缩小到50%）
         self.result_action = None  # "resize", "cancel", "original"
         
-        self.setWindowTitle("图片尺寸过大")
+        self.setWindowTitle(tr("image_resize.title"))
         self.setModal(True)
         self.setMinimumWidth(450)
         self.setMaximumWidth(550)
@@ -597,7 +600,7 @@ class ImageResizeDialog(QDialog):
         icon_label.setStyleSheet("font-size: 24px; background: transparent;")
         title_layout.addWidget(icon_label)
         
-        title_label = QLabel("图片尺寸过大")
+        title_label = QLabel(tr("image_resize.title"))
         title_label.setStyleSheet("""
             font-size: 16px;
             font-weight: bold;
@@ -633,9 +636,9 @@ class ImageResizeDialog(QDialog):
         pixels = self.original_width * self.original_height
         pixels_str = f"{pixels / 1_000_000:.1f}" if pixels >= 1_000_000 else f"{pixels / 1_000:.1f}K"
         
-        info_text = f"""当前图片分辨率为 <b>{self.original_width} × {self.original_height}</b>（{pixels_str}百万像素），
-超出软件处理能力，可能导致内存不足或处理失败。<br><br>
-建议缩小图片后再进行处理。请选择缩放比例："""
+        info_text = tr("image_resize.message", width=self.original_width, height=self.original_height, pixels_text=pixels_str)
+
+
         
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
@@ -728,7 +731,7 @@ class ImageResizeDialog(QDialog):
         btn_layout.setSpacing(12)
         
         # 取消按钮
-        cancel_btn = QPushButton("取消导入")
+        cancel_btn = QPushButton(tr("image_resize.cancel_import"))
         cancel_btn.setFixedHeight(38)
         cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         cancel_btn.setStyleSheet("""
@@ -750,7 +753,7 @@ class ImageResizeDialog(QDialog):
         btn_layout.addStretch()
         
         # 强制原图按钮（小字提示风险）
-        force_btn = QPushButton("强制原图导入")
+        force_btn = QPushButton(tr("image_resize.force_original_import"))
         force_btn.setFixedHeight(38)
         force_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         force_btn.setStyleSheet("""
@@ -767,12 +770,12 @@ class ImageResizeDialog(QDialog):
                 border-color: hsl(0, 70%, 50%);
             }
         """)
-        force_btn.setToolTip("可能导致内存不足或软件崩溃")
+        force_btn.setToolTip(tr("image_resize.force_original_tooltip"))
         force_btn.clicked.connect(self._on_force_original)
         btn_layout.addWidget(force_btn)
         
         # 确认缩放按钮
-        confirm_btn = QPushButton("缩放并导入")
+        confirm_btn = QPushButton(tr("image_resize.confirm_import"))
         confirm_btn.setFixedHeight(38)
         confirm_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         confirm_btn.setStyleSheet("""
@@ -847,10 +850,9 @@ class ImageResizeDialog(QDialog):
         else:
             pixels_text = f"{new_pixels / 1_000:.0f} 千像素"
         
-        self.preview_label.setText(
-            f"缩放后分辨率：{new_w} × {new_h}（{pixels_text}）\n"
-            f"预计内存占用：约 {new_pixels * 3 / 1024 / 1024:.1f} MB"
-        )
+        self.preview_label.setText(tr("image_resize.preview", width=new_w, height=new_h, pixels_text=pixels_text, memory_mb=new_pixels * 3 / 1024 / 1024))
+
+
     
     def _on_confirm(self):
         """确认缩放"""

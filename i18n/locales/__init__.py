@@ -1,0 +1,1 @@
+"""Per-locale message catalogs."""

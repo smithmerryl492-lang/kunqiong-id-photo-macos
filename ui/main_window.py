@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QLabel, QFileDialog, QProgressBar,
     QStackedWidget, QGridLayout, QFrame, QGraphicsDropShadowEffect
 )
-from ui.custom_widgets import StyledMessageBox
+from ui.custom_widgets import StyledMessageBox, StyledComboBox
 from io import BytesIO
 from PyQt6.QtCore import Qt, pyqtSignal, QThread, QTimer
 from PyQt6.QtGui import QPixmap, QIcon, QColor
@@ -21,8 +21,17 @@ try:
     from ui.fullscreen_basic_edit_dialog import FullscreenBasicEditDialog
 except ImportError:
     FullScreenEditor = FullScreenRectEditor = FullscreenWatermarkDialog = FullscreenBasicEditDialog = None
-from utils.config import WINDOW_TITLE, WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT, WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT, VERSION
+from utils.config import (
+    WINDOW_MIN_WIDTH,
+    WINDOW_MIN_HEIGHT,
+    WINDOW_DEFAULT_WIDTH,
+    WINDOW_DEFAULT_HEIGHT,
+    get_footer_text,
+    get_window_title,
+    save_locale,
+)
 from utils.error_log import log_error, get_error_log_tip
+from i18n import tr, get_current_locale, get_supported_locales, get_locale_label, set_locale
 
 
 class ProcessThread(QThread):
@@ -130,7 +139,7 @@ class ProcessThread(QThread):
                 # 检查取消状态
                 if self._cancelled:
                     process.terminate()
-                    self.finished.emit("error", "处理已取消")
+                    self.finished.emit("error", tr("process.cancelled"))
                     return
                 
                 self.progress.emit(90)
@@ -384,8 +393,7 @@ class ModuleTab(QWidget):
         action_container = QWidget()
         action_layout = QVBoxLayout(action_container)
         action_layout.setSpacing(12)
-        
-        self.btn_process = QPushButton("🚀 开始处理")
+        self.btn_process = QPushButton("🚀 " + tr("main.start_process"))
         self.btn_process.setObjectName("btn_process")
         self.btn_process.setStyleSheet("""
             QPushButton#btn_process {
@@ -439,8 +447,7 @@ class ModuleTab(QWidget):
         self.right_panel_layout.setSpacing(12)
         
         # 结果标题和关闭按钮
-        result_header = QHBoxLayout()
-        result_label = QLabel("处理结果")
+        result_label = QLabel(tr("main.result"))
         result_label.setProperty("class", "subheading")
         result_label.setStyleSheet("""
             QLabel[class="subheading"] {
@@ -449,6 +456,7 @@ class ModuleTab(QWidget):
                 color: hsl(213, 31%, 91%);
             }
         """)
+        result_header = QHBoxLayout()
         result_header.addWidget(result_label)
         result_header.addStretch()
         
@@ -480,8 +488,7 @@ class ModuleTab(QWidget):
         self.id_photo_result_widget = IDPhotoResultWidget()
         self.id_photo_result_widget.setVisible(False)
         self.right_panel_layout.addWidget(self.id_photo_result_widget, stretch=1)
-        
-        self.btn_save = QPushButton("💾 保存结果")
+        self.btn_save = QPushButton("💾 " + tr("main.save_result"))
         self.btn_save.setProperty("class", "secondary")
         self.btn_save.setStyleSheet("""
             QPushButton[class="secondary"] {
@@ -529,16 +536,16 @@ class ModuleTab(QWidget):
             self.content_layout.insertWidget(1, self.right_panel, stretch=2)
     
     def load_image(self):
-        """加载图片"""
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "选择图片", "", "Images (*.png *.jpg *.jpeg *.bmp *.webp)"
+            self, tr("main.select_image"), "", "Images (*.png *.jpg *.jpeg *.bmp *.webp)"
         )
         if file_path:
-            # 验证图片
+            # ????
             valid, msg = self.module.validate_input(file_path)
             if not valid:
-                StyledMessageBox.warning(self, "错误", msg)
+                StyledMessageBox.warning(self, tr("common.error"), msg)
                 return
+            
             
             # 加载到预览组件
             if self.preview_widget.load_image(file_path):
@@ -686,7 +693,7 @@ class ModuleTab(QWidget):
         if FullScreenEditor is None:
             return
         if not module_tab.current_image_path:
-            StyledMessageBox.warning(self, "警告", "请先选择图片")
+            StyledMessageBox.warning(self, tr("common.warning"), tr("validation.select_image_first"))
             return
         
         # 获取当前的mask（如果有）- 转换为灰度图
@@ -760,7 +767,7 @@ class ModuleTab(QWidget):
     def open_fullscreen_rect_editor(self, module_tab):
         """打开矩形选择全屏编辑器（支持多矩形）"""
         if not module_tab.current_image_path:
-            StyledMessageBox.warning(self, "警告", "请先选择图片")
+            StyledMessageBox.warning(self, tr("common.warning"), tr("validation.select_image_first"))
             return
         
         # 获取当前所有矩形
@@ -801,7 +808,7 @@ class ModuleTab(QWidget):
         except ImportError:
             return
         if not module_tab.current_image_path:
-            StyledMessageBox.warning(self, "警告", "请先选择图片")
+            StyledMessageBox.warning(self, tr("common.warning"), tr("validation.select_image_first"))
             return
         
         # 准备初始参数
@@ -852,7 +859,7 @@ class ModuleTab(QWidget):
             return
         if not module_tab.current_image_path:
             from ui.custom_widgets import StyledMessageBox
-            StyledMessageBox.warning(self, "警告", "请先选择图片")
+            StyledMessageBox.warning(self, tr("common.warning"), tr("validation.select_image_first"))
             return
         
         # 创建全屏对话框
@@ -870,7 +877,7 @@ class ModuleTab(QWidget):
             return
         if not module_tab.current_image_path:
             from ui.custom_widgets import StyledMessageBox
-            StyledMessageBox.warning(self, "警告", "请先选择图片")
+            StyledMessageBox.warning(self, tr("common.warning"), tr("validation.select_image_first"))
             return
         
         # 创建全屏对话框
@@ -942,15 +949,15 @@ class ModuleTab(QWidget):
             
             # 证件照模块
             if hasattr(self.params_widget, 'bg_combo'):
-                params['bg_color'] = self.params_widget.bg_combo.currentText()
+                params['bg_color'] = self.params_widget.bg_combo.currentData()
             if hasattr(self.params_widget, 'size_combo'):
-                params['size'] = self.params_widget.size_combo.currentText()
+                params['size'] = self.params_widget.size_combo.currentData()
             # 证件照模式参数（官方）
             if hasattr(self.params_widget, 'mode_combo'):
-                params['mode'] = self.params_widget.mode_combo.currentText()
+                params['mode'] = self.params_widget.mode_combo.currentData()
             # 证件照渲染模式（官方）
             if hasattr(self.params_widget, 'render_combo'):
-                params['render_mode'] = self.params_widget.render_combo.currentText()
+                params['render_mode'] = self.params_widget.render_combo.currentData()
             # 证件照美颜参数（使用新的 beauty_params）
             if hasattr(self.module, 'beauty_params'):
                 params.update(self.module.beauty_params)
@@ -984,13 +991,13 @@ class ModuleTab(QWidget):
                 self.current_image_path = self.preview_widget.current_image_path
 
         if not self.current_image_path:
-            StyledMessageBox.warning(self, "警告", "请先选择图片")
+            StyledMessageBox.warning(self, tr("common.warning"), tr("validation.select_image_first"))
             return
         
         # 检查是否需要mask
         if hasattr(self.module, 'requires_mask') and self.module.requires_mask():
             if not self.preview_widget.has_mask():
-                StyledMessageBox.warning(self, "警告", "请先标记要处理的区域")
+                StyledMessageBox.warning(self, tr("common.warning"), tr("validation.mark_area_first"))
                 return
         
         # 检查模型是否已加载，如果未加载则显示加载对话框
@@ -1067,11 +1074,11 @@ class ModuleTab(QWidget):
         # 预估处理时间
         estimated_time = self._estimate_process_time()
         
-        # 修改按钮文字
         self.btn_process.setText(
-            f"⏳ 正在处理 | 使用AI大模型本地离线处理\n"
-            f"处理速度根据您电脑配置而定，预计{estimated_time}，请耐心等待"
+            tr("main.processing", estimated_time=estimated_time)
         )
+        
+        
         
         # 禁用按钮
         self.btn_process.setEnabled(False)
@@ -1161,9 +1168,8 @@ class ModuleTab(QWidget):
         else:
             self.progress_bar.setVisible(False)
             self.btn_process.setEnabled(True)
-            # 恢复按钮文字
-            self.btn_process.setText("🚀 开始处理")
-            StyledMessageBox.critical(self, "错误", message)
+            self.btn_process.setText(tr("main.start_process"))
+            StyledMessageBox.critical(self, tr("common.error"), message)
     
     def _show_result(self, image_path):
         """延迟显示结果 - 根据模块类型选择显示方式"""
@@ -1179,13 +1185,13 @@ class ModuleTab(QWidget):
                 rgba_img = cv2_imread(image_path, cv2.IMREAD_UNCHANGED)
                 if rgba_img is not None:
                     # 获取用户选择的背景色和渲染模式
-                    bg_color = '白色'
-                    render_mode = '纯色'  # 默认纯色
+                    bg_color = 'white'
+                    render_mode = 'pure_color'  # 默认纯色
                     if hasattr(self, 'params_widget') and self.params_widget:
                         if hasattr(self.params_widget, 'bg_combo'):
-                            bg_color = self.params_widget.bg_combo.currentText()
+                            bg_color = self.params_widget.bg_combo.currentData() or 'white'
                         if hasattr(self.params_widget, 'render_combo'):
-                            render_mode = self.params_widget.render_combo.currentText()
+                            render_mode = self.params_widget.render_combo.currentData() or 'pure_color'
                     # 设置背景色、渲染模式和模块引用（用于渲染）
                     self.id_photo_result_widget.current_bg_color = bg_color
                     self.id_photo_result_widget.current_render_mode = render_mode
@@ -1199,28 +1205,28 @@ class ModuleTab(QWidget):
         finally:
             self.progress_bar.setVisible(False)
             self.btn_process.setEnabled(True)
-            # 恢复按钮文字
-            self.btn_process.setText("🚀 开始处理")
+            self.btn_process.setText(tr("main.start_process"))
+    
     
     def save_result(self):
         """保存结果"""
         if not self.result_path or not os.path.exists(self.result_path):
-            StyledMessageBox.warning(self, "警告", "没有可保存的结果")
+            StyledMessageBox.warning(self, tr("common.warning"), tr("validation.no_result_to_save"))
             return
         
         # 获取当前模块
         current_tab = self.stacked_widget.currentWidget()
         current_module = current_tab.module if hasattr(current_tab, 'module') else None
-        
         file_path, _ = QFileDialog.getSaveFileName(
-            self, "保存图片", "", "PNG Files (*.png);;JPEG Files (*.jpg);;All Files (*.*)"
+            self, tr("save.dialog_title"), "", "PNG Files (*.png);;JPEG Files (*.jpg);;All Files (*.*)"
         )
         if file_path:
             try:
-                # 确保目标目录存在
+                # ????????
                 output_dir = os.path.dirname(file_path)
                 if output_dir and not os.path.exists(output_dir):
                     os.makedirs(output_dir, exist_ok=True)
+                
                 
                 # 如果是证件照模块，使用IDPhotoResultWidget的保存逻辑
                 if current_module and current_module.get_name() == "证件照":
@@ -1228,12 +1234,12 @@ class ModuleTab(QWidget):
                     # 用户应该使用全屏预览窗口的保存按钮
                     import shutil
                     shutil.copy2(self.result_path, file_path)
-                    StyledMessageBox.success(self, "成功", f"图片已保存到：{file_path}")
+                    StyledMessageBox.success(self, tr("common.success"), tr("save.saved_to", file_path=file_path))
                 else:
                     # 其他模块直接复制
                     import shutil
                     shutil.copy2(self.result_path, file_path)
-                    StyledMessageBox.success(self, "成功", f"图片已保存到：{file_path}")
+                    StyledMessageBox.success(self, tr("common.success"), tr("save.saved_to", file_path=file_path))
             except Exception as e:
                 log_error(str(e), sys.exc_info(), location="ui.main_window.ModuleTab.save_result")
                 StyledMessageBox.critical(self, "错误", f"保存失败：{str(e)}")
@@ -1305,7 +1311,7 @@ class MainWindow(QMainWindow):
             pass
     
     def init_ui(self):
-        self.setWindowTitle(WINDOW_TITLE)
+        self.setWindowTitle(get_window_title())
         self.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
         
         # 设置窗口图标
@@ -1347,6 +1353,43 @@ class MainWindow(QMainWindow):
         top_btn_layout = QHBoxLayout(top_button_bar)
         top_btn_layout.setContentsMargins(0, 0, 0, 0)
         top_btn_layout.setSpacing(0)
+        self.locale_combo = StyledComboBox()
+        self.locale_combo.setMinimumWidth(148)
+        self.locale_combo.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.locale_combo.setStyleSheet("""
+            QComboBox {
+                background-color: hsl(224, 71.4%, 4.1%);
+                border: 1px solid hsl(217.2, 32.6%, 17.5%);
+                border-radius: 6px;
+                padding: 6px 10px;
+                padding-right: 28px;
+                color: hsl(213, 31%, 91%);
+                font-size: 12px;
+                min-height: 28px;
+            }
+            QComboBox:hover {
+                border-color: hsl(215, 20.2%, 65.1%);
+            }
+            QComboBox::drop-down {
+                border: none;
+                border-left: 1px solid hsl(217.2, 32.6%, 17.5%);
+                background: hsl(217.2, 32.6%, 17.5%);
+                width: 24px;
+                border-top-right-radius: 5px;
+                border-bottom-right-radius: 5px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: hsl(224, 71.4%, 4.1%);
+                border: 1px solid hsl(217.2, 32.6%, 17.5%);
+                selection-background-color: hsl(221.2, 83.2%, 53.3%);
+                selection-color: white;
+                color: hsl(213, 31%, 91%);
+            }
+        """)
+        self._populate_locale_combo()
+        self.locale_combo.currentIndexChanged.connect(self._on_locale_changed)
+        top_btn_layout.addWidget(self.locale_combo)
+        top_btn_layout.addSpacing(8)
         top_btn_layout.addStretch()
         btn_style_min = """
             QPushButton {
@@ -1457,12 +1500,11 @@ class MainWindow(QMainWindow):
                 panel_inner = QVBoxLayout(panel_block)
                 panel_inner.setContentsMargins(0, 0, 0, 0)
                 panel_inner.setSpacing(6)
-                panel_inner.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                name_c = QLabel("鲲穹AI证件照")
+                name_c = QLabel(tr("app.id_photo_name"))
                 name_c.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 name_c.setStyleSheet("color: hsl(213, 31%, 91%); font-size: 38px; font-weight: 600; letter-spacing: 8px; background: transparent;")
                 panel_inner.addWidget(name_c, alignment=Qt.AlignmentFlag.AlignCenter)
-                sub_c = QLabel("完全离线 永久免费")
+                sub_c = QLabel(tr("app.id_photo_tagline"))
                 sub_c.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 sub_c.setStyleSheet("color: hsl(215, 20.2%, 65.1%); font-size: 14px; letter-spacing: 10px; background: transparent;")
                 panel_inner.addWidget(sub_c, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -1511,18 +1553,18 @@ class MainWindow(QMainWindow):
         content_layout.addWidget(self.stacked_widget, stretch=1)
         
         # 底部：联系信息
-        footer = QLabel()
-        footer.setText(f'如您有任何建议或者软件定制开发，请进入 <a href="https://www.kunqiongai.com/" style="color: hsl(221.2, 83.2%, 53.3%);">鲲穹AI官网</a> 联系我们 | 当前版本{VERSION}')
-        footer.setOpenExternalLinks(True)
-        footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        footer.setStyleSheet("""
+        self.footer_label = QLabel()
+        self.footer_label.setText(get_footer_text())
+        self.footer_label.setOpenExternalLinks(True)
+        self.footer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.footer_label.setStyleSheet("""
             QLabel {
                 color: hsl(215, 20.2%, 65.1%);
                 font-size: 12px;
                 padding: 8px 0;
             }
         """)
-        content_layout.addWidget(footer)
+        content_layout.addWidget(self.footer_label)
         
         layout.addWidget(content_area, stretch=1)
         outer_layout.addWidget(content_frame, stretch=1)
@@ -1536,6 +1578,41 @@ class MainWindow(QMainWindow):
         for i, btn in enumerate(self.module_buttons):
             btn.setChecked(i == index)
         self.stacked_widget.setCurrentIndex(index)
+
+    def _populate_locale_combo(self):
+        current_locale = get_current_locale()
+        self.locale_combo.blockSignals(True)
+        self.locale_combo.clear()
+        for locale_code in get_supported_locales():
+            label = get_locale_label(locale_code, native=True)
+            self.locale_combo.addItem(label, locale_code)
+        index = self.locale_combo.findData(current_locale)
+        self.locale_combo.setCurrentIndex(index if index >= 0 else 0)
+        self.locale_combo.blockSignals(False)
+
+    def _on_locale_changed(self, _index):
+        if not hasattr(self, "locale_combo"):
+            return
+        locale_code = self.locale_combo.currentData()
+        if not locale_code or locale_code == get_current_locale():
+            return
+        save_locale(locale_code)
+        set_locale(locale_code)
+        self._rebuild_ui()
+
+    def _rebuild_ui(self):
+        current_index = 0
+        if hasattr(self, "stacked_widget") and self.stacked_widget is not None:
+            current_index = self.stacked_widget.currentIndex()
+        old_central = self.centralWidget()
+        if old_central is not None:
+            old_central.deleteLater()
+        self.init_ui()
+        self.apply_styles()
+        self.setWindowTitle(get_window_title())
+        if self.module_buttons:
+            current_index = max(0, min(current_index, len(self.module_buttons) - 1))
+            self.switch_module(current_index)
     
     def get_logo_pixmap(self):
         """优先从 logo.png 加载 Logo，否则用 Base64"""

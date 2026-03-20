@@ -11,6 +11,7 @@ import os
 import cv2
 import numpy as np
 import tempfile
+from i18n import tr
 
 # 从 id_photo 模块导入翻译函数
 from modules.id_photo import translate_color_dialog_to_chinese
@@ -208,7 +209,7 @@ class ImagePreviewWidget(QWidget):
         layout.addWidget(self.scroll_area)
         
         # 提示信息
-        self.info_label = QLabel("请加载图片，然后使用鼠标左键拖动标记要处理的区域")
+        self.info_label = QLabel(tr("image.mark_instruction"))
         self.info_label.setStyleSheet("color: #707a85; font-size: 9pt; padding: 5px;")
         self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.info_label)
@@ -216,7 +217,7 @@ class ImagePreviewWidget(QWidget):
     def load_image(self, image_path: str):
         """加载图片"""
         if not os.path.exists(image_path):
-            StyledMessageBox.warning(self, "错误", "图片文件不存在")
+            StyledMessageBox.warning(self, tr("common.error"), tr("image.load.file_missing"))
             return False
         
         try:
@@ -230,7 +231,7 @@ class ImagePreviewWidget(QWidget):
             from utils.image_utils import cv2_imread
             img = cv2_imread(image_path)
             if img is None:
-                StyledMessageBox.warning(self, "错误", "无法读取图片文件")
+                StyledMessageBox.warning(self, tr("common.error"), tr("image.load.read_failed"))
                 return False
             
             # 如果需要缩放
@@ -249,7 +250,7 @@ class ImagePreviewWidget(QWidget):
             
             # 显示图片
             self.update_display()
-            self.info_label.setText("使用鼠标左键拖动标记要处理的区域（红色区域）")
+            self.info_label.setText(tr("image.mark_instruction_ready"))
             return True
         except Exception as e:
             StyledMessageBox.critical(self, "错误", f"加载图片失败: {str(e)}")
@@ -497,13 +498,13 @@ class ImageCompareWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         
         # 原图
-        self.before_label = QLabel("原图")
+        self.before_label = QLabel(tr("preview.before"))
         self.before_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.before_label.setMinimumSize(300, 300)
         self.before_label.setStyleSheet("background-color: #252b35; border: 1px solid #3d4554;")
         
         # 处理后
-        self.after_label = QLabel("处理后")
+        self.after_label = QLabel(tr("preview.after"))
         self.after_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.after_label.setMinimumSize(300, 300)
         self.after_label.setStyleSheet("background-color: #252b35; border: 1px solid #3d4554;")
@@ -550,7 +551,7 @@ class ResultImageWidget(QWidget):
         layout.setSpacing(5)
 
         # 图片显示区域
-        self.image_label = QLabel("暂无处理结果")
+        self.image_label = QLabel(tr("preview.no_result"))
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setMinimumSize(300, 300)
         self.image_label.setStyleSheet("""
@@ -567,7 +568,7 @@ class ResultImageWidget(QWidget):
         layout.addWidget(self.image_label)
 
         # 提示信息
-        self.hint_label = QLabel("点击图片查看大图")
+        self.hint_label = QLabel(tr("preview.click_to_view_large"))
         self.hint_label.setStyleSheet("color: #707a85; font-size: 9pt; padding: 5px;")
         self.hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.hint_label)
@@ -583,11 +584,11 @@ class ResultImageWidget(QWidget):
             if not pixmap.isNull():
                 self._original_pixmap = pixmap
                 self._update_scaled_image()
-                self.hint_label.setText("点击图片查看大图")
+                self.hint_label.setText(tr("preview.click_to_view_large"))
         else:
             self._original_pixmap = None
             self.image_label.clear()
-            self.image_label.setText("暂无处理结果")
+            self.image_label.setText(tr("preview.no_result"))
             self.hint_label.setText("")
 
     def _update_scaled_image(self):
@@ -656,8 +657,8 @@ class ResultImageWidget(QWidget):
         window_height = max_height
 
         # 创建对话框
-        dialog = QDialog(self)
-        dialog.setWindowTitle("处理结果 - 滚轮缩放，点击原图尺寸查看完整细节")
+        dialog.setWindowTitle(tr("preview.result_window_title"))
+        dialog.setWindowTitle(tr("preview.result_window_title"))
         dialog.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowCloseButtonHint | Qt.WindowType.WindowMaximizeButtonHint | Qt.WindowType.WindowMinimizeButtonHint)
         dialog.setStyleSheet("background-color: hsl(222.2, 47.4%, 11.2%);")
         dialog.resize(window_width, window_height)
@@ -689,7 +690,7 @@ class ResultImageWidget(QWidget):
         image_path_for_save = self.image_path
         def save_image():
             file_path, _ = QFileDialog.getSaveFileName(
-                dialog, "保存图片", "", "PNG Files (*.png);;JPEG Files (*.jpg);;All Files (*.*)"
+                dialog, tr("save.dialog_title"), "", "PNG Files (*.png);;JPEG Files (*.jpg);;All Files (*.*)"
             )
             if file_path:
                 try:
@@ -699,11 +700,11 @@ class ResultImageWidget(QWidget):
                         os.makedirs(output_dir, exist_ok=True)
                     
                     shutil.copy2(image_path_for_save, file_path)
-                    StyledMessageBox.success(dialog, "成功", f"图片已保存到：{file_path}")
+                    StyledMessageBox.success(dialog, tr("common.success"), tr("save.saved_to", file_path=file_path))
                 except Exception as e:
                     StyledMessageBox.critical(dialog, "错误", f"保存失败：{str(e)}")
 
-        btn_save = QPushButton("💾 保存图片")
+        btn_save = QPushButton("?? " + tr("common.save_image"))
         btn_save.setStyleSheet("""
             QPushButton {
                 background-color: hsl(142.1, 76.2%, 36.3%);
@@ -722,7 +723,7 @@ class ResultImageWidget(QWidget):
         toolbar_layout.addWidget(btn_save)
 
         # 原图尺寸按钮
-        btn_original = QPushButton("原图尺寸")
+        btn_original = QPushButton(tr("common.original_size"))
         btn_original.setStyleSheet("""
             QPushButton {
                 background-color: hsl(217.2, 32.6%, 17.5%);
@@ -738,7 +739,7 @@ class ResultImageWidget(QWidget):
         toolbar_layout.addWidget(btn_original)
 
         # 适应窗口按钮
-        btn_fit = QPushButton("适应窗口")
+        btn_fit = QPushButton(tr("common.fit_window"))
         btn_fit.setStyleSheet("""
             QPushButton {
                 background-color: hsl(217.2, 32.6%, 17.5%);
@@ -768,7 +769,7 @@ class ResultImageWidget(QWidget):
 
         # 提示文字（仅对去水印和涂抹去除显示）
         if module_name in ["去除水印", "涂抹去除"]:
-            tip_label = QLabel("若处理不满足您的预期请检查选中或涂抹区域是否过大或过小")
+            tip_label = QLabel(tr("preview.selection_tip"))
             tip_label.setStyleSheet("""
                 QLabel {
                     color: hsl(38, 92%, 50%);
@@ -784,7 +785,7 @@ class ResultImageWidget(QWidget):
         toolbar_layout.addStretch()
 
         # 图片尺寸信息
-        size_label = QLabel(f"尺寸: {img_width} x {img_height}")
+        size_label = QLabel(tr("common.size", width=img_width, height=img_height))
         size_label.setStyleSheet("""
             QLabel {
                 color: hsl(215, 20.2%, 65.1%);
@@ -796,7 +797,7 @@ class ResultImageWidget(QWidget):
         toolbar_layout.addWidget(size_label)
 
         # 关闭窗口按钮
-        btn_close = QPushButton("✕ 关闭窗口")
+        btn_close = QPushButton("? " + tr("common.close_window"))
         btn_close.setStyleSheet("""
             QPushButton {
                 background-color: hsl(217.2, 32.6%, 17.5%);
@@ -921,6 +922,13 @@ class ResultImageWidget(QWidget):
 
 class PrintLayoutDialog(QDialog):
     """证件照排版打印设置对话框 - 全屏，上参数下预览，无预览按钮"""
+    PAPER_OPTIONS = [
+        ("id_photo.paper_6inch", "6inch"),
+        ("id_photo.paper_5inch", "5inch"),
+        ("id_photo.paper_a4", "A4"),
+        ("id_photo.paper_3r", "3R"),
+        ("id_photo.paper_4r", "4R"),
+    ]
     
     def __init__(self, photo_path: str, parent=None, print_params: dict = None, output_params: dict = None, output_types: dict = None):
         super().__init__(parent)
@@ -931,7 +939,7 @@ class PrintLayoutDialog(QDialog):
         self.output_types = output_types or {}
         self._layout_pixmap = None  # 原始排版图，用于缩放显示
         self._preview_timer = None
-        self.setWindowTitle("证件照排版打印")
+        self.setWindowTitle(tr("print_layout.title"))
         self.setWindowState(Qt.WindowState.WindowMaximized)
         self.setStyleSheet("""
             QDialog {
@@ -939,6 +947,32 @@ class PrintLayoutDialog(QDialog):
             }
         """)
         self._init_ui()
+
+    def _normalize_paper_size(self, paper_size: str) -> str:
+        aliases = {
+            "六寸": "6inch",
+            "6寸": "6inch",
+            "五寸": "5inch",
+            "5寸": "5inch",
+            "A4": "A4",
+            "3R": "3R",
+            "4R": "4R",
+            "6inch": "6inch",
+            "5inch": "5inch",
+        }
+        return aliases.get(paper_size, "6inch")
+
+    def _populate_paper_combo(self):
+        self.paper_combo.clear()
+        for label_key, value in self.PAPER_OPTIONS:
+            self.paper_combo.addItem(tr(label_key), value)
+
+    def _set_paper_combo_value(self, paper_size: str):
+        index = self.paper_combo.findData(self._normalize_paper_size(paper_size))
+        self.paper_combo.setCurrentIndex(index if index >= 0 else 0)
+
+    def _current_paper_size(self) -> str:
+        return self.paper_combo.currentData() or "6inch"
     
     def _init_ui(self):
         from PyQt6.QtWidgets import QFrame
@@ -956,19 +990,17 @@ class PrintLayoutDialog(QDialog):
         top_layout.setContentsMargins(0, 0, 0, 0)
         top_layout.setSpacing(12)
 
-        title = QLabel("证件照排版打印")
+        title = QLabel(tr("print_layout.title"))
         title.setStyleSheet("color: white; font-size: 14px; font-weight: bold;")
         top_layout.addWidget(title)
 
-        paper_label = QLabel("纸张:")
+        paper_label = QLabel(tr("print_layout.paper"))
         paper_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%);")
         top_layout.addWidget(paper_label)
 
         self.paper_combo = StyledComboBox()
-        paper_sizes = ['六寸', '五寸', 'A4', '3R', '4R']
-        self.paper_combo.addItems(paper_sizes)
-        default_paper = self.print_params.get('paper_size', '六寸')
-        self.paper_combo.setCurrentText(default_paper if default_paper in paper_sizes else '六寸')
+        self._populate_paper_combo()
+        self._set_paper_combo_value(self.print_params.get('paper_size', '6inch'))
         self.paper_combo.setStyleSheet("""
             QComboBox {
                 background-color: hsl(224, 71.4%, 4.1%);
@@ -989,7 +1021,7 @@ class PrintLayoutDialog(QDialog):
         """)
         top_layout.addWidget(self.paper_combo)
 
-        count_label = QLabel("张数:")
+        count_label = QLabel(tr("print_layout.count"))
         count_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%);")
         top_layout.addWidget(count_label)
 
@@ -1008,21 +1040,21 @@ class PrintLayoutDialog(QDialog):
             QRadioButton::indicator { width: 12px; height: 12px; border-radius: 6px; border: 2px solid hsl(217.2, 32.6%, 40%); background: hsl(224, 71.4%, 4.1%); }
             QRadioButton::indicator:checked { background: white; border-color: white; }
         """
-        self.radio_4 = QRadioButton("4张")
+        self.radio_4 = QRadioButton(tr("print_layout.option_4"))
         self.radio_4.setStyleSheet(radio_style)
         self.count_group.addButton(self.radio_4, 4)
         top_layout.addWidget(self.radio_4)
-        self.radio_6 = QRadioButton("6张")
+        self.radio_6 = QRadioButton(tr("print_layout.option_6"))
         self.radio_6.setStyleSheet(radio_style)
         self.radio_6.setChecked(True)
         self.count_group.addButton(self.radio_6, 6)
         top_layout.addWidget(self.radio_6)
-        self.radio_8 = QRadioButton("8张")
+        self.radio_8 = QRadioButton(tr("print_layout.option_8"))
         self.radio_8.setStyleSheet(radio_style)
         self.count_group.addButton(self.radio_8, 8)
         top_layout.addWidget(self.radio_8)
 
-        gap_label = QLabel("间距:")
+        gap_label = QLabel(tr("print_layout.spacing"))
         gap_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%);")
         top_layout.addWidget(gap_label)
         self.gap_combo = StyledComboBox()
@@ -1054,15 +1086,15 @@ class PrintLayoutDialog(QDialog):
         top_layout.addStretch()
 
         btn_style = "QPushButton { background-color: hsl(217.2, 32.6%, 17.5%); color: hsl(213, 31%, 91%); border: none; border-radius: 6px; padding: 8px 16px; } QPushButton:hover { background-color: hsl(215, 27.9%, 22%); }"
-        btn_cancel = QPushButton("取消")
+        btn_cancel = QPushButton(tr("common.cancel"))
         btn_cancel.setStyleSheet(btn_style)
         btn_cancel.clicked.connect(self.reject)
         top_layout.addWidget(btn_cancel)
-        btn_save = QPushButton("💾 保存")
+        btn_save = QPushButton("?? " + tr("common.save"))
         btn_save.setStyleSheet("QPushButton { background-color: hsl(142.1, 76.2%, 36.3%); color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; } QPushButton:hover { background-color: hsl(142.1, 76.2%, 42%); }")
         btn_save.clicked.connect(self._on_save)
         top_layout.addWidget(btn_save)
-        btn_print = QPushButton("🖨 打印")
+        btn_print = QPushButton("?? " + tr("common.print"))
         btn_print.setStyleSheet("QPushButton { background-color: hsl(262.1, 83.3%, 57.8%); color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; } QPushButton:hover { background-color: hsl(262.1, 83.3%, 63%); }")
         btn_print.clicked.connect(self._on_print)
         top_layout.addWidget(btn_print)
@@ -1080,21 +1112,21 @@ class PrintLayoutDialog(QDialog):
         self.preview_label.setMinimumSize(200, 200)
         self.preview_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.preview_label.setStyleSheet("color: hsl(215, 20.2%, 45%); font-size: 13px;")
-        self.preview_label.setText("正在生成预览…")
+        self.preview_label.setText(tr("print_layout.generating"))
         preview_layout.addWidget(self.preview_label)
         layout.addWidget(preview_frame, stretch=1)
 
         def _debounced_update():
             QTimer.singleShot(350, self._update_preview)
 
-        self.paper_combo.currentTextChanged.connect(_debounced_update)
+        self.paper_combo.currentIndexChanged.connect(_debounced_update)
         self.count_group.buttonToggled.connect(lambda btn, ok: _debounced_update() if ok else None)
         self.gap_combo.currentTextChanged.connect(_debounced_update)
         
     
     def _update_preview(self):
         """生成排版图并刷新预览区（参数变更时调用）"""
-        paper_type = self.paper_combo.currentText()
+        paper_type = self._current_paper_size()
         count = self.count_group.checkedId()
         if count < 0:
             count = 6
@@ -1102,7 +1134,7 @@ class PrintLayoutDialog(QDialog):
         gap_mm = int(gap_text.replace(' mm', '').strip())
 
         if not self.photo_path or not os.path.exists(self.photo_path):
-            self.preview_label.setText("无法加载图片")
+            self.preview_label.setText(tr("print_layout.image_unavailable"))
             self._layout_pixmap = None
             return
 
@@ -1116,7 +1148,7 @@ class PrintLayoutDialog(QDialog):
             from utils.image_utils import cv2_imread
             img = cv2_imread(result_path)
             if img is None:
-                self.preview_label.setText("预览生成失败")
+                self.preview_label.setText(tr("print_layout.preview_failed"))
                 self._layout_pixmap = None
                 return
             h, w = img.shape[:2]
@@ -1130,7 +1162,7 @@ class PrintLayoutDialog(QDialog):
             # 在预览区显示简洁提示
             lines = error_msg.split('\n')
             short_msg = lines[0] if lines else error_msg
-            self.preview_label.setText(f"⚠️ {short_msg}\n\n请调整参数后重试")
+            self.preview_label.setText(f"?? {short_msg}\n\n{tr("preview.adjust_params_retry")}")
             self._layout_pixmap = None
         except Exception as e:
             self.preview_label.setText(f"预览失败: {str(e)}")
@@ -1170,7 +1202,7 @@ class PrintLayoutDialog(QDialog):
         from PIL import Image
         import os
         
-        paper_type = self.paper_combo.currentText()
+        paper_type = self._current_paper_size()
         count = self.count_group.checkedId()
         gap_text = self.gap_combo.currentText()
         gap_mm = int(gap_text.replace(' mm', ''))
@@ -1193,7 +1225,7 @@ class PrintLayoutDialog(QDialog):
             # 保存文件（默认英文文件名）
             default_filename = f"id_photo_layout_{paper_type}_{count}pcs.png"
             file_path, _ = QFileDialog.getSaveFileName(
-                self, "保存排版图", default_filename,
+                self, tr("print_layout.save_dialog_title"), default_filename,
                 "PNG Files (*.png);;JPEG Files (*.jpg)"
             )
             
@@ -1219,8 +1251,8 @@ class PrintLayoutDialog(QDialog):
                         
                         resize_image_to_kb(img, file_path, target_kb, dpi if dpi_enabled else 300)
                         actual_size = os.path.getsize(file_path) / 1024
-                        StyledMessageBox.success(self, "成功", 
-                            f"排版图已保存到：{file_path}\n文件大小：{actual_size:.1f}KB\nDPI: {dpi if dpi_enabled else 300}")
+                        StyledMessageBox.success(self, tr("common.success"), 
+                            tr("save.print_layout_saved_with_dpi", file_path=file_path, actual_size=actual_size, dpi=dpi if dpi_enabled else 300))
                     except ImportError:
                         # 备用方法
                         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -1238,23 +1270,23 @@ class PrintLayoutDialog(QDialog):
                                 break
                             quality -= 5
                         actual_size = os.path.getsize(file_path) / 1024
-                        StyledMessageBox.success(self, "成功", 
-                            f"排版图已保存到：{file_path}\n文件大小：{actual_size:.1f}KB\nDPI: {dpi if dpi_enabled else 300}")
+                        StyledMessageBox.success(self, tr("common.success"), 
+                            tr("save.print_layout_saved_with_dpi", file_path=file_path, actual_size=actual_size, dpi=dpi if dpi_enabled else 300))
                 elif dpi_enabled:
                     # 只设置DPI
                     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                     pil_img = Image.fromarray(img_rgb)
                     pil_img.save(file_path, dpi=(dpi, dpi))
                     actual_size = os.path.getsize(file_path) / 1024
-                    StyledMessageBox.success(self, "成功", 
-                        f"排版图已保存到：{file_path}\n文件大小：{actual_size:.1f}KB\nDPI: {dpi}")
+                    StyledMessageBox.success(self, tr("common.success"), 
+                        tr("save.print_layout_saved_with_dpi", file_path=file_path, actual_size=actual_size, dpi=dpi))
                 else:
                     # 默认保存
                     import shutil
                     shutil.copy2(self.result_path, file_path)
                     actual_size = os.path.getsize(file_path) / 1024
-                    StyledMessageBox.success(self, "成功", 
-                        f"排版图已保存到：{file_path}\n文件大小：{actual_size:.1f}KB")
+                    StyledMessageBox.success(self, tr("common.success"), 
+                        tr("save.print_layout_saved", file_path=file_path, actual_size=actual_size))
                 
                 self.accept()
             
@@ -1269,7 +1301,7 @@ class PrintLayoutDialog(QDialog):
         from PyQt6.QtGui import QPainter, QImage
         import cv2
         
-        paper_type = self.paper_combo.currentText()
+        paper_type = self._current_paper_size()
         count = self.count_group.checkedId()
         gap_text = self.gap_combo.currentText()
         gap_mm = int(gap_text.replace(' mm', ''))
@@ -1287,7 +1319,7 @@ class PrintLayoutDialog(QDialog):
             from utils.image_utils import cv2_imread
             img = cv2_imread(result_path)
             if img is None:
-                StyledMessageBox.critical(self, "错误", "读取排版图失败")
+                StyledMessageBox.critical(self, tr("common.error"), tr("print_layout.read_failed"))
                 return
             
             # 创建打印机对象
@@ -1317,7 +1349,7 @@ class PrintLayoutDialog(QDialog):
                 painter.drawImage(0, 0, q_img)
                 painter.end()
                 
-                StyledMessageBox.success(self, "成功", "打印任务已发送")
+                StyledMessageBox.success(self, tr("common.success"), tr("print_layout.task_sent"))
             
         except Exception as e:
             import traceback
@@ -1330,13 +1362,22 @@ class IDPhotoResultWidget(QWidget):
     
     # 背景颜色选项 (BGR格式用于OpenCV处理, RGB用于UI显示)
     BG_COLORS = {
-        '白色': {'bgr': (255, 255, 255), 'rgb': '#FFFFFF'},
-        '蓝色': {'bgr': (219, 142, 67), 'rgb': '#438EDB'},
-        '浅蓝色': {'bgr': (235, 180, 120), 'rgb': '#78B4EB'},
-        '深蓝色': {'bgr': (180, 100, 50), 'rgb': '#326496'},
-        '红色': {'bgr': (67, 67, 219), 'rgb': '#DB4343'},
-        '深红色': {'bgr': (60, 60, 180), 'rgb': '#B43C3C'},
-        '灰色': {'bgr': (200, 200, 200), 'rgb': '#C8C8C8'},
+        'white': {'bgr': (255, 255, 255), 'rgb': '#FFFFFF'},
+        'blue': {'bgr': (219, 142, 67), 'rgb': '#438EDB'},
+        'light_blue': {'bgr': (235, 180, 120), 'rgb': '#78B4EB'},
+        'dark_blue': {'bgr': (180, 100, 50), 'rgb': '#326496'},
+        'red': {'bgr': (67, 67, 219), 'rgb': '#DB4343'},
+        'dark_red': {'bgr': (60, 60, 180), 'rgb': '#B43C3C'},
+        'gray': {'bgr': (200, 200, 200), 'rgb': '#C8C8C8'},
+    }
+    COLOR_LABEL_KEYS = {
+        'white': 'id_photo.bg_white',
+        'blue': 'id_photo.bg_blue',
+        'light_blue': 'id_photo.bg_light_blue',
+        'dark_blue': 'id_photo.bg_dark_blue',
+        'red': 'id_photo.bg_red',
+        'dark_red': 'id_photo.bg_dark_red',
+        'gray': 'id_photo.bg_gray',
     }
     
     # 标准证件照尺寸映射 (像素 -> 毫米) @300dpi
@@ -1364,12 +1405,47 @@ class IDPhotoResultWidget(QWidget):
         super().__init__(parent)
         self.image_path = None  # 原始抠图结果（带alpha通道）
         self.rgba_image = None  # numpy数组格式的RGBA图像
-        self.current_bg_color = '白色'
-        self.current_render_mode = '纯色'  # 渲染模式（官方）
+        self.current_bg_color = 'white'
+        self.current_render_mode = 'pure_color'  # 渲染模式（官方）
         self.current_result_path = None  # 当前背景色应用后的图片路径
         self.custom_colors = {}  # 自定义颜色存储
         self.id_photo_module = None  # ID照片模块引用（用于调用渲染方法）
         self.init_ui()
+
+    def _normalize_bg_color(self, color_name: str) -> str:
+        aliases = {
+            '白色': 'white',
+            '蓝色': 'blue',
+            '浅蓝色': 'light_blue',
+            '深蓝色': 'dark_blue',
+            '红色': 'red',
+            '深红色': 'dark_red',
+            '灰色': 'gray',
+            'white': 'white',
+            'blue': 'blue',
+            'light_blue': 'light_blue',
+            'dark_blue': 'dark_blue',
+            'red': 'red',
+            'dark_red': 'dark_red',
+            'gray': 'gray',
+        }
+        return aliases.get(color_name, color_name)
+
+    def _normalize_render_mode(self, render_mode: str) -> str:
+        aliases = {
+            '纯色': 'pure_color',
+            '上下渐变（白色）': 'updown_gradient',
+            '中心渐变（白色）': 'center_gradient',
+            'pure_color': 'pure_color',
+            'updown_gradient': 'updown_gradient',
+            'center_gradient': 'center_gradient',
+        }
+        return aliases.get(render_mode, render_mode)
+
+    def _display_color_name(self, color_name: str) -> str:
+        normalized = self._normalize_bg_color(color_name)
+        label_key = self.COLOR_LABEL_KEYS.get(normalized)
+        return tr(label_key) if label_key else color_name
     
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -1390,7 +1466,7 @@ class IDPhotoResultWidget(QWidget):
         color_layout.setSpacing(6)
         
         # 标签
-        label = QLabel("背景:")
+        label = QLabel(tr("id_photo.background"))
         label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent; border: none; font-size: 12px;")
         color_layout.addWidget(label)
         
@@ -1400,7 +1476,7 @@ class IDPhotoResultWidget(QWidget):
             btn = QPushButton()
             btn.setFixedSize(24, 24)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setToolTip(name)
+            btn.setToolTip(self._display_color_name(name))
             btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {colors['rgb']};
@@ -1421,13 +1497,13 @@ class IDPhotoResultWidget(QWidget):
             color_layout.addWidget(btn)
         
         # 默认选中白色
-        self.color_buttons['白色'].setChecked(True)
+        self.color_buttons['white'].setChecked(True)
         
         # 自定义颜色按钮
         self.custom_color_btn = QPushButton("+")
         self.custom_color_btn.setFixedSize(24, 24)
         self.custom_color_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.custom_color_btn.setToolTip("自定义颜色")
+        self.custom_color_btn.setToolTip(tr("id_photo.custom_color"))
         self.custom_color_btn.setStyleSheet("""
             QPushButton {
                 background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
@@ -1449,7 +1525,7 @@ class IDPhotoResultWidget(QWidget):
         color_layout.addStretch()
         
         # 当前颜色名称
-        self.color_name_label = QLabel("白色")
+        self.color_name_label = QLabel(self._display_color_name('white'))
         self.color_name_label.setStyleSheet("color: hsl(213, 31%, 91%); background: transparent; border: none; font-size: 11px;")
         color_layout.addWidget(self.color_name_label)
         
@@ -1487,7 +1563,7 @@ class IDPhotoResultWidget(QWidget):
         layout.addWidget(self.preview_container, stretch=1)
         
         # 底部提示
-        hint = QLabel("点击照片查看大图 | 选择背景色后自动应用")
+        hint = QLabel(tr("id_photo.hint"))
         hint.setStyleSheet("color: hsl(215, 20.2%, 50%); font-size: 11px;")
         hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(hint)
@@ -1514,12 +1590,13 @@ class IDPhotoResultWidget(QWidget):
     
     def on_color_selected(self, color_name: str):
         """选择背景色"""
+        normalized_color = self._normalize_bg_color(color_name)
         # 更新按钮状态
         for name, btn in self.color_buttons.items():
-            btn.setChecked(name == color_name)
+            btn.setChecked(name == normalized_color)
         
-        self.current_bg_color = color_name
-        self.color_name_label.setText(color_name)
+        self.current_bg_color = normalized_color
+        self.color_name_label.setText(self._display_color_name(normalized_color))
         
         # 应用新背景色
         self.apply_background_color()
@@ -1530,7 +1607,7 @@ class IDPhotoResultWidget(QWidget):
         from PyQt6.QtGui import QColor
         
         color_dialog = QColorDialog(self)
-        color_dialog.setWindowTitle("选择背景颜色")
+        color_dialog.setWindowTitle(tr("id_photo.background_color"))
         color_dialog.setCurrentColor(QColor(255, 255, 255))
         # 设置中文界面
         color_dialog.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)
@@ -1620,16 +1697,19 @@ class IDPhotoResultWidget(QWidget):
     def apply_background_color(self):
         """应用背景色到图片（支持渲染模式）"""
         if self.rgba_image is None:
-            self.photo_frame.setText("暂无证件照")
+            self.photo_frame.setText(tr("id_photo.no_photo"))
             return
+
+        self.current_bg_color = self._normalize_bg_color(self.current_bg_color)
+        self.current_render_mode = self._normalize_render_mode(self.current_render_mode)
         
         # 优先从自定义颜色获取，然后从默认颜色获取
         color_info = self.custom_colors.get(self.current_bg_color) or \
-                     self.BG_COLORS.get(self.current_bg_color, self.BG_COLORS['白色'])
+                     self.BG_COLORS.get(self.current_bg_color, self.BG_COLORS['white'])
         bg_color = color_info['bgr']
         
         # 根据渲染模式应用背景
-        if self.current_render_mode in ['上下渐变（白色）', '中心渐变（白色）'] and self.id_photo_module:
+        if self.current_render_mode in ['updown_gradient', 'center_gradient'] and self.id_photo_module:
             # 使用模块的渐变方法（官方算法）
             result = self._apply_gradient_background(self.rgba_image, bg_color, self.current_render_mode)
         else:
@@ -1691,7 +1771,7 @@ class IDPhotoResultWidget(QWidget):
         
         end_color = (255, 255, 255)  # 白色
         
-        if render_mode == '上下渐变（白色）':
+        if render_mode == 'updown_gradient':
             # 上下渐变（官方算法）
             r2 = np.zeros((h, w), dtype=np.float32)
             g2 = np.zeros((h, w), dtype=np.float32)
@@ -1785,7 +1865,7 @@ class IDPhotoResultWidget(QWidget):
         
         # 创建对话框
         dialog = QDialog(self)
-        dialog.setWindowTitle("证件照预览 - 点击颜色切换背景")
+        dialog.setWindowTitle(tr("id_photo.preview_title"))
         dialog.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowCloseButtonHint | Qt.WindowType.WindowMaximizeButtonHint | Qt.WindowType.WindowMinimizeButtonHint)
         dialog.setStyleSheet("background-color: hsl(222.2, 47.4%, 11.2%);")
         dialog.resize(window_width, window_height)
@@ -1813,7 +1893,7 @@ class IDPhotoResultWidget(QWidget):
         toolbar_layout.setSpacing(12)
         
         # 背景色按钮
-        color_label = QLabel("背景色:")
+        color_label = QLabel(tr("id_photo.background_color"))
         color_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent; border: none;")
         toolbar_layout.addWidget(color_label)
         
@@ -1835,11 +1915,11 @@ class IDPhotoResultWidget(QWidget):
         def update_image():
             # 支持自定义颜色
             color_info = self.custom_colors.get(state['current_color']) or \
-                         self.BG_COLORS.get(state['current_color'], self.BG_COLORS['白色'])
+                         self.BG_COLORS.get(state['current_color'], self.BG_COLORS['white'])
             bg_color = color_info['bgr']
             
             # 根据渲染模式应用背景
-            if self.current_render_mode in ['上下渐变（白色）', '中心渐变（白色）']:
+            if self.current_render_mode in ['updown_gradient', 'center_gradient']:
                 result = self._apply_gradient_background(state['rgba'], bg_color, self.current_render_mode)
             else:
                 result = self._apply_solid_background(state['rgba'], bg_color)
@@ -2005,7 +2085,7 @@ class IDPhotoResultWidget(QWidget):
                             border-color: hsl(221.2, 83.2%, 53.3%);
                         }}
                     """)
-            color_name_label.setText(color_name)
+            color_name_label.setText(self._display_color_name(color_name))
             update_image()
         
         dialog_color_buttons = {}
@@ -2015,7 +2095,7 @@ class IDPhotoResultWidget(QWidget):
             btn = QPushButton()
             btn.setFixedSize(24, 24)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setToolTip(name)
+            btn.setToolTip(self._display_color_name(name))
             is_current = (name == state['current_color'])
             border_color = 'hsl(142.1, 76.2%, 46.3%)' if is_current else 'hsl(217.2, 32.6%, 25%)'
             border_width = '2px' if is_current else '2px'
@@ -2039,7 +2119,7 @@ class IDPhotoResultWidget(QWidget):
             from PyQt6.QtGui import QColor as QC
             
             color_dialog = QColorDialog(dialog)
-            color_dialog.setWindowTitle("选择背景颜色")
+            color_dialog.setWindowTitle(tr("id_photo.background_color"))
             color_dialog.setCurrentColor(QC(255, 255, 255))
             # 设置中文界面
             color_dialog.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)
@@ -2120,7 +2200,7 @@ class IDPhotoResultWidget(QWidget):
         dialog_custom_btn = QPushButton("+")
         dialog_custom_btn.setFixedSize(24, 24)
         dialog_custom_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        dialog_custom_btn.setToolTip("自定义颜色")
+        dialog_custom_btn.setToolTip(tr("id_photo.custom_color"))
         dialog_custom_btn.setStyleSheet("""
             QPushButton {
                 background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
@@ -2139,7 +2219,7 @@ class IDPhotoResultWidget(QWidget):
         dialog_custom_btn.clicked.connect(on_dialog_custom_color)
         toolbar_layout.addWidget(dialog_custom_btn)
         
-        color_name_label = QLabel(f"当前: {state['current_color']}")
+        color_name_label = QLabel(tr("id_photo.current_color", color=self._display_color_name(state["current_color"])))
         color_name_label.setStyleSheet("color: hsl(213, 31%, 91%); background: transparent; border: none; margin-left: 8px;")
         toolbar_layout.addWidget(color_name_label)
         
@@ -2150,7 +2230,7 @@ class IDPhotoResultWidget(QWidget):
         zoom_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent; border: none;")
         
         # 适应窗口按钮（只在图片大于窗口时显示）
-        btn_fit = QPushButton("适应窗口")
+        btn_fit = QPushButton(tr("common.fit_window"))
         btn_fit.setStyleSheet("""
             QPushButton {
                 background-color: hsl(217.2, 32.6%, 17.5%);
@@ -2198,7 +2278,7 @@ class IDPhotoResultWidget(QWidget):
                 )
                 print_dialog.exec()
         
-        btn_print = QPushButton("🖨️ 排版打印")
+        btn_print = QPushButton("??? " + tr("common.print_layout"))
         btn_print.setStyleSheet("""
             QPushButton {
                 background-color: hsl(221.2, 83.2%, 53.3%);
@@ -2224,7 +2304,7 @@ class IDPhotoResultWidget(QWidget):
             if state['current_path'] and os.path.exists(state['current_path']):
                 # 创建保存选项对话框
                 save_dialog = QDialog(dialog)
-                save_dialog.setWindowTitle("保存证件照")
+                save_dialog.setWindowTitle(tr("save.id_photo_dialog_title"))
                 save_dialog.setFixedSize(400, 200)
                 save_dialog.setStyleSheet("background-color: hsl(222.2, 47.4%, 11.2%);")
                 
@@ -2238,7 +2318,7 @@ class IDPhotoResultWidget(QWidget):
                 size_layout = QHBoxLayout(size_row)
                 size_layout.setContentsMargins(0, 0, 0, 0)
                 
-                size_check = QCheckBox("限制文件大小")
+                size_check = QCheckBox(tr("save.limit_file_size"))
                 size_check.setStyleSheet("color: hsl(213, 31%, 91%);")
                 size_layout.addWidget(size_check)
                 
@@ -2274,7 +2354,7 @@ class IDPhotoResultWidget(QWidget):
                 preset_layout = QHBoxLayout(preset_row)
                 preset_layout.setContentsMargins(0, 0, 0, 0)
                 
-                preset_label = QLabel("常用大小:")
+                preset_label = QLabel(tr("save.common_sizes"))
                 preset_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%);")
                 preset_layout.addWidget(preset_label)
                 
@@ -2306,7 +2386,7 @@ class IDPhotoResultWidget(QWidget):
                 btn_layout_dlg = QHBoxLayout(btn_row)
                 btn_layout_dlg.setContentsMargins(0, 0, 0, 0)
                 
-                btn_cancel_dlg = QPushButton("取消")
+                btn_cancel_dlg = QPushButton(tr("common.cancel"))
                 btn_cancel_dlg.setStyleSheet("""
                     QPushButton {
                         background-color: hsl(217.2, 32.6%, 17.5%);
@@ -2330,18 +2410,8 @@ class IDPhotoResultWidget(QWidget):
                     jpeg_format = self.id_photo_module.plugin_params.get('jpeg_format', False) if (hasattr(self, 'id_photo_module') and self.id_photo_module) else False
                     is_matting = output_types.get('matting_standard') or output_types.get('matting_hd')
                     
-                    # 颜色英文名映射
-                    color_name_map = {
-                        '白色': 'white',
-                        '蓝色': 'blue',
-                        '浅蓝色': 'light_blue',
-                        '深蓝色': 'dark_blue',
-                        '红色': 'red',
-                        '深红色': 'dark_red',
-                        '灰色': 'gray'
-                    }
                     current_color = state['current_color']
-                    color_en = color_name_map.get(current_color, 'custom')
+                    color_en = current_color if current_color in self.BG_COLORS else 'custom'
                     
                     if is_matting:
                         default_name = f"id_photo_{color_en}.png"
@@ -2353,7 +2423,7 @@ class IDPhotoResultWidget(QWidget):
                         default_name = f"id_photo_{color_en}.png"
                         file_filter = "PNG Files (*.png);;JPEG Files (*.jpg)"
                     file_path, _ = QFileDialog.getSaveFileName(
-                        save_dialog, "保存证件照", default_name, file_filter
+                        save_dialog, tr("save.id_photo_dialog_title"), default_name, file_filter
                     )
                     if file_path:
                         try:
@@ -2386,15 +2456,15 @@ class IDPhotoResultWidget(QWidget):
                                         with open(file_path, 'wb') as f:
                                             f.write(encoded.tobytes())
                                     actual_size = os.path.getsize(file_path) / 1024
-                                    StyledMessageBox.success(save_dialog, "成功",
-                                        f"证件照已保存到：{file_path}\n文件大小：{actual_size:.1f}KB\n格式：PNG（透明背景）")
+                                    StyledMessageBox.success(save_dialog, tr("common.success"),
+                                        tr("save.id_photo_saved_transparent", file_path=file_path, actual_size=actual_size))
                                     save_dialog.accept()
                                     return
-                                StyledMessageBox.critical(save_dialog, "错误", "透明照需要 RGBA 数据，保存失败")
+                                StyledMessageBox.critical(save_dialog, tr("common.error"), tr("save.transparent_requires_rgba"))
                                 return
                             # 读取当前图片（带背景 BGR），支持中文路径
                             if not state['current_path'] or not os.path.exists(state['current_path']):
-                                StyledMessageBox.critical(save_dialog, "错误", "临时文件丢失，请重新切换背景色")
+                                StyledMessageBox.critical(save_dialog, tr("common.error"), tr("save.temp_file_missing"))
                                 return
                             
                             from utils.image_utils import cv2_imread
@@ -2427,8 +2497,8 @@ class IDPhotoResultWidget(QWidget):
                                         
                                         # 显示实际文件大小
                                         actual_size = os.path.getsize(file_path) / 1024
-                                        StyledMessageBox.success(save_dialog, "成功", 
-                                            f"证件照已保存到：{file_path}\n文件大小：{actual_size:.1f}KB\nDPI: {dpi if dpi_enabled else 300}")
+                                        StyledMessageBox.success(save_dialog, tr("common.success"), 
+                                            tr("save.id_photo_saved_with_dpi", file_path=file_path, actual_size=actual_size, dpi=dpi if dpi_enabled else 300))
                                     except ImportError as ie:
                                         # 如果导入失败，使用备用方法
                                         from PIL import Image
@@ -2449,8 +2519,8 @@ class IDPhotoResultWidget(QWidget):
                                             quality -= 5
                                         
                                         actual_size = os.path.getsize(file_path) / 1024
-                                        StyledMessageBox.success(save_dialog, "成功", 
-                                            f"证件照已保存到：{file_path}\n文件大小：{actual_size:.1f}KB\nDPI: {dpi if dpi_enabled else 300}\n(使用备用方法)")
+                                        StyledMessageBox.success(save_dialog, tr("common.success"), 
+                                            tr("save.id_photo_saved_with_dpi_fallback", file_path=file_path, actual_size=actual_size, dpi=dpi if dpi_enabled else 300))
                                 elif dpi_enabled:
                                     # 只设置DPI，不控制KB大小
                                     from PIL import Image
@@ -2460,8 +2530,8 @@ class IDPhotoResultWidget(QWidget):
                                     pil_img.save(file_path, dpi=(dpi, dpi))
                                     
                                     actual_size = os.path.getsize(file_path) / 1024
-                                    StyledMessageBox.success(save_dialog, "成功", 
-                                        f"证件照已保存到：{file_path}\n文件大小：{actual_size:.1f}KB\nDPI: {dpi}")
+                                    StyledMessageBox.success(save_dialog, tr("common.success"), 
+                                        tr("save.id_photo_saved_with_dpi", file_path=file_path, actual_size=actual_size, dpi=dpi))
                                 else:
                                     # 两者都未启用，使用默认保存（支持中文路径）
                                     ext = os.path.splitext(file_path)[1].lower()
@@ -2474,8 +2544,8 @@ class IDPhotoResultWidget(QWidget):
                                         with open(file_path, 'wb') as f:
                                             f.write(encoded.tobytes())
                                     actual_size = os.path.getsize(file_path) / 1024
-                                    StyledMessageBox.success(save_dialog, "成功", 
-                                        f"证件照已保存到：{file_path}\n文件大小：{actual_size:.1f}KB")
+                                    StyledMessageBox.success(save_dialog, tr("common.success"), 
+                                        tr("save.id_photo_saved", file_path=file_path, actual_size=actual_size))
                             else:
                                 # 旧的KB控制逻辑（对话框中的）
                                 max_kb = None
@@ -2489,14 +2559,14 @@ class IDPhotoResultWidget(QWidget):
                                 
                                 # 显示实际文件大小
                                 actual_size = os.path.getsize(file_path) / 1024
-                                StyledMessageBox.success(save_dialog, "成功", 
-                                    f"证件照已保存到：{file_path}\n文件大小：{actual_size:.1f}KB")
+                                StyledMessageBox.success(save_dialog, tr("common.success"), 
+                                    tr("save.id_photo_saved", file_path=file_path, actual_size=actual_size))
                             
                             save_dialog.accept()
                         except Exception as e:
                             StyledMessageBox.critical(save_dialog, "错误", f"保存失败：{str(e)}")
                 
-                btn_save_dlg = QPushButton("保存")
+                btn_save_dlg = QPushButton(tr("common.save"))
                 btn_save_dlg.setStyleSheet("""
                     QPushButton {
                         background-color: hsl(142.1, 76.2%, 36.3%);
@@ -2517,7 +2587,7 @@ class IDPhotoResultWidget(QWidget):
                 
                 save_dialog.exec()
         
-        btn_save = QPushButton("💾 保存")
+        btn_save = QPushButton("?? " + tr("common.save"))
         btn_save.setStyleSheet("""
             QPushButton {
                 background-color: hsl(142.1, 76.2%, 36.3%);
@@ -2534,7 +2604,7 @@ class IDPhotoResultWidget(QWidget):
         btn_save.clicked.connect(save_image)
         toolbar_layout.addWidget(btn_save)
         
-        btn_close = QPushButton("✕ 关闭")
+        btn_close = QPushButton("? " + tr("common.close"))
         btn_close.setStyleSheet("""
             QPushButton {
                 background-color: hsl(217.2, 32.6%, 17.5%);
@@ -2610,7 +2680,7 @@ class IDPhotoResultWidget(QWidget):
         # 更新主界面的颜色按钮状态
         for name, btn in self.color_buttons.items():
             btn.setChecked(name == state['current_color'])
-        self.color_name_label.setText(state['current_color'])
+        self.color_name_label.setText(self._display_color_name(state['current_color']))
     
     def get_current_result_path(self) -> str:
         """获取当前背景色应用后的图片路径"""
@@ -2647,8 +2717,8 @@ class IDPhotoResultWidget(QWidget):
                 from ui.custom_widgets import StyledMessageBox
                 StyledMessageBox.warning(
                     parent_dialog or self,
-                    "检查授权码失败",
-                    f"{error_msg}\n\n将继续保存操作"
+                    tr("auth.check_failed_title"),
+                    tr("auth.check_failed_continue", error=error_msg)
                 )
                 return True
             
@@ -2675,8 +2745,8 @@ class IDPhotoResultWidget(QWidget):
                     from ui.custom_widgets import StyledMessageBox
                     StyledMessageBox.critical(
                         parent_dialog or self,
-                        "授权码验证失败",
-                        error_msg or "授权码无效，请重新输入"
+                        tr("auth.verify_failed_title"),
+                        error_msg or tr("auth.invalid_code"),
                     )
                     # 继续循环，重新弹出授权码输入框
             
@@ -2685,16 +2755,16 @@ class IDPhotoResultWidget(QWidget):
             from ui.custom_widgets import StyledMessageBox
             StyledMessageBox.warning(
                 parent_dialog or self,
-                "提示",
-                f"授权码模块加载失败：{str(e)}\n\n将继续保存操作"
+                tr("common.tip"),
+                tr("auth.module_load_failed", error=str(e))
             )
             return True
         except Exception as e:
-            # 其他错误，提示但不阻止
+            # ???????????
             from ui.custom_widgets import StyledMessageBox
             StyledMessageBox.warning(
                 parent_dialog or self,
-                "提示",
-                f"授权码检查失败：{str(e)}\n\n将继续保存操作"
+                tr("common.tip"),
+                tr("auth.check_failed_continue", error=str(e))
             )
             return True

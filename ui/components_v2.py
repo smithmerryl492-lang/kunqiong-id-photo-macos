@@ -1,4 +1,4 @@
-"""通用UI组件"""
+﻿"""通用UI组件"""
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QFileDialog, QSlider, QColorDialog,
@@ -12,6 +12,37 @@ import os
 import cv2
 import numpy as np
 from utils.image_utils import cv2_imread
+from i18n import tr
+
+
+IMAGE_FILE_FILTER = "Images (*.png *.jpg *.jpeg *.bmp *.webp)"
+ALL_FILE_FILTER = "All Files (*.*)"
+
+
+def _build_requirements_hint(module) -> str:
+    if not module:
+        return ""
+
+    try:
+        req = module.get_system_requirements()
+    except Exception:
+        return ""
+
+    return (
+        f"\n\n💻 {tr('preview.system_requirements')}"
+        f"\n  {tr('preview.minimum_requirements')}: CPU {req['min_cpu']} + {tr('preview.memory') } {req['min_ram']}"
+        f"\n  {tr('preview.recommended_requirements')}: CPU {req['rec_cpu']} + {tr('preview.memory')} {req['rec_ram']}"
+    )
+
+
+def build_preview_hint(module_description="", module=None, operation_tip=None) -> str:
+    hint_text = tr("preview.import_hint")
+    if module_description:
+        hint_text += f"\n\n📋 {tr('preview.feature_description')}: {module_description}"
+    hint_text += _build_requirements_hint(module)
+    if operation_tip:
+        hint_text += f"\n\n💡 {tr('preview.operation_tip')}: {operation_tip}"
+    return hint_text
 
 
 class ImageLabelWithBackground(QLabel):
@@ -139,7 +170,7 @@ class ImagePreviewWidgetV2(QWidget):
         toolbar_layout.setSpacing(12)
         
         # 导入图片按钮
-        self.btn_load = QPushButton("📁 导入图片")
+        self.btn_load = QPushButton(f"📁 {tr('common.import_image')}")
         self.btn_load.setProperty("class", "secondary")
         self.btn_load.setStyleSheet("""
             QPushButton[class="secondary"] {
@@ -186,10 +217,10 @@ class ImagePreviewWidgetV2(QWidget):
         brush_container_layout.setSpacing(spacing)
         
         # 笔刷/移动模式切换按钮
-        self.btn_brush = QPushButton("🖌️ 笔刷")
+        self.btn_brush = QPushButton(f"🖌️ {tr('preview.brush')}")
         self.btn_brush.setCheckable(True)
         self.btn_brush.setChecked(True)
-        self.btn_brush.setToolTip("笔刷模式：涂抹标记区域（当前模式）")
+        self.btn_brush.setToolTip(tr("preview.brush_tooltip_active"))
         self.btn_brush.setProperty("class", "icon-button")
         self.btn_brush.setStyleSheet("""
             QPushButton[class="icon-button"] {
@@ -217,10 +248,10 @@ class ImagePreviewWidgetV2(QWidget):
         self.btn_brush.clicked.connect(self.set_brush_mode)
         brush_container_layout.addWidget(self.btn_brush)
         
-        self.btn_pan = QPushButton("✋ 移动")
+        self.btn_pan = QPushButton(f"✋ {tr('preview.pan')}")
         self.btn_pan.setCheckable(True)
         self.btn_pan.setChecked(False)
-        self.btn_pan.setToolTip("移动模式：拖拽图片")
+        self.btn_pan.setToolTip(tr("preview.pan_tooltip"))
         self.btn_pan.setProperty("class", "icon-button")
         self.btn_pan.setStyleSheet("""
             QPushButton[class="icon-button"] {
@@ -262,7 +293,7 @@ class ImagePreviewWidgetV2(QWidget):
         
         # 颜色选择按钮
         self.btn_color = QPushButton("🎨")
-        self.btn_color.setToolTip("选择笔刷颜色")
+        self.btn_color.setToolTip(tr("preview.choose_brush_color"))
         self.btn_color.setProperty("class", "icon-button")
         self.btn_color.setStyleSheet("""
             QPushButton[class="icon-button"] {
@@ -286,7 +317,7 @@ class ImagePreviewWidgetV2(QWidget):
         # 透明度滑块
         alpha_layout = QHBoxLayout()
         alpha_layout.setSpacing(8)
-        alpha_label = QLabel("透明度:")
+        alpha_label = QLabel(tr("preview.opacity"))
         alpha_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent; border: none;")
         alpha_layout.addWidget(alpha_label)
         
@@ -307,7 +338,7 @@ class ImagePreviewWidgetV2(QWidget):
         # 笔刷大小
         brush_layout = QHBoxLayout()
         brush_layout.setSpacing(8)
-        brush_label = QLabel("笔刷:")
+        brush_label = QLabel(tr("preview.brush_size"))
         brush_label.setStyleSheet("color: hsl(215, 20.2%, 65.1%); background: transparent; border: none;")
         brush_layout.addWidget(brush_label)
         
@@ -347,10 +378,10 @@ class ImagePreviewWidgetV2(QWidget):
                 background-color: hsl(215, 27.9%, 22%);
             }
         """
-        self.btn_eraser = QPushButton("🧹 橡皮擦")
+        self.btn_eraser = QPushButton(f"🧹 {tr('preview.eraser')}")
         self.btn_eraser.setCheckable(True)
         self.btn_eraser.setChecked(False)
-        self.btn_eraser.setToolTip("点击切换橡皮擦模式")
+        self.btn_eraser.setToolTip(tr("preview.eraser_tooltip"))
         self.btn_eraser.setStyleSheet(eraser_btn_style)
         self.btn_eraser.clicked.connect(self.toggle_eraser_mode)
         brush_container_layout.addWidget(self.btn_eraser)
@@ -375,7 +406,7 @@ class ImagePreviewWidgetV2(QWidget):
         toolbar_layout.addStretch()
         
         # 全屏按钮
-        self.btn_fullscreen = QPushButton("⛶ 全屏")
+        self.btn_fullscreen = QPushButton(f"⛶ {tr('common.fullscreen')}")
         self.btn_fullscreen.setProperty("class", "outline")
         self.btn_fullscreen.setStyleSheet("""
             QPushButton[class="outline"] {
@@ -419,19 +450,8 @@ class ImagePreviewWidgetV2(QWidget):
         self.scroll_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # 图片标签
-        self.image_label = ImageLabelWithBackground("点击上方\"导入图片\"或点击此处选择图片")
-        if self.module_description:
-            hint_text = f"点击上方\"导入图片\"或点击此处选择图片\n\n📋 功能说明：{self.module_description}"
-            # 添加配置要求
-            if self.module:
-                try:
-                    req = self.module.get_system_requirements()
-                    hint_text += "\n\n💻 电脑配置要求："
-                    hint_text += f"\n\u3000最低配置：CPU {req['min_cpu']} + 内存 {req['min_ram']}"
-                    hint_text += f"\n\u3000推荐配置：CPU {req['rec_cpu']} + 内存 {req['rec_ram']}"
-                except:
-                    pass
-            self.image_label.setText(hint_text)
+        self.image_label = ImageLabelWithBackground(tr("preview.import_hint"))
+        self.image_label.setText(build_preview_hint(self.module_description, self.module))
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setStyleSheet("""
             QLabel {
@@ -464,7 +484,7 @@ class ImagePreviewWidgetV2(QWidget):
     def load_image_dialog(self):
         """打开文件对话框选择图片"""
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "选择图片", "", "Images (*.png *.jpg *.jpeg *.bmp *.webp)"
+        self, tr("main.select_image"), "", IMAGE_FILE_FILTER
         )
         if file_path:
             self.load_image(file_path)
@@ -628,20 +648,20 @@ class ImagePreviewWidgetV2(QWidget):
         self.mode = 'brush'
         self.btn_brush.setChecked(True)
         self.btn_pan.setChecked(False)
-        self.btn_brush.setToolTip("笔刷模式：涂抹标记区域（当前模式）")
-        self.btn_pan.setToolTip("移动模式：拖拽图片")
+        self.btn_brush.setToolTip(tr("preview.brush_tooltip_active"))
+        self.btn_pan.setToolTip(tr("preview.pan_tooltip"))
     
     def set_pan_mode(self):
         """设置移动模式"""
         self.mode = 'pan'
         self.btn_brush.setChecked(False)
         self.btn_pan.setChecked(True)
-        self.btn_brush.setToolTip("笔刷模式：涂抹标记区域")
-        self.btn_pan.setToolTip("移动模式：拖拽图片（当前模式）")
+        self.btn_brush.setToolTip(tr("preview.brush_tooltip"))
+        self.btn_pan.setToolTip(tr("preview.pan_tooltip_active"))
     
     def choose_brush_color(self):
         """选择笔刷颜色"""
-        color = QColorDialog.getColor(self.brush_color, self, "选择笔刷颜色")
+        color = QColorDialog.getColor(self.brush_color, self, tr("preview.choose_brush_color"))
         if color.isValid():
             self.brush_color = color
             # 如果已有mask，更新颜色
@@ -1140,7 +1160,7 @@ class ImagePreviewWidgetRect(QWidget):
         toolbar_layout.setSpacing(12)
         
         # 导入按钮
-        self.btn_import = QPushButton("📁 导入图片")
+        self.btn_import = QPushButton(f"📁 {tr('common.import_image')}")
         self.btn_import.setProperty("class", "secondary")
         self.btn_import.setStyleSheet("""
             QPushButton[class="secondary"] {
@@ -1177,7 +1197,7 @@ class ImagePreviewWidgetRect(QWidget):
         toolbar_layout.addStretch()
         
         # 清除按钮
-        self.btn_clear = QPushButton("🗑️ 清除全部")
+        self.btn_clear = QPushButton(f"🗑️ {tr('common.clear_all')}")
         self.btn_clear.setProperty("class", "outline")
         self.btn_clear.setStyleSheet("""
             QPushButton[class="outline"] {
@@ -1195,7 +1215,7 @@ class ImagePreviewWidgetRect(QWidget):
         toolbar_layout.addWidget(self.btn_clear)
         
         # 全屏按钮
-        self.btn_fullscreen = QPushButton("⛶ 全屏")
+        self.btn_fullscreen = QPushButton(f"⛶ {tr('common.fullscreen')}")
         self.btn_fullscreen.setProperty("class", "outline")
         self.btn_fullscreen.setStyleSheet("""
             QPushButton[class="outline"] {
@@ -1226,21 +1246,11 @@ class ImagePreviewWidgetRect(QWidget):
         layout.addWidget(self.graphics_view, stretch=1)
         
         # 显示提示文本的标签（图片未加载时）- 与ImagePreviewWidgetV2格式一致
-        hint_text = "点击上方\"导入图片\"或点击此处选择图片"
-        if self.module_description:
-            hint_text += f"\n\n📋 功能说明：{self.module_description}"
-        
-        # 添加配置要求
-        if self.module:
-            try:
-                req = self.module.get_system_requirements()
-                hint_text += "\n\n💻 电脑配置要求："
-                hint_text += f"\n\u3000最低配置：CPU {req['min_cpu']} + 内存 {req['min_ram']}"
-                hint_text += f"\n\u3000推荐配置：CPU {req['rec_cpu']} + 内存 {req['rec_ram']}"
-            except:
-                pass
-        
-        hint_text += "\n\n💡 操作提示：左键拖拽绘制 | 右键/Delete删除 | 方向键微调"
+        hint_text = build_preview_hint(
+            self.module_description,
+            self.module,
+            tr("preview.operation_draw_rect"),
+        )
         self.hint_label = ImageLabelWithBackground(hint_text)
         self.hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.hint_label.setStyleSheet("""
@@ -1298,7 +1308,7 @@ class ImagePreviewWidgetRect(QWidget):
     def import_image(self):
         """导入图片"""
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "选择图片", "", "Images (*.png *.jpg *.jpeg *.bmp *.webp)"
+        self, tr("main.select_image"), "", IMAGE_FILE_FILTER
         )
         if file_path:
             self.load_image(file_path)
@@ -1452,7 +1462,7 @@ class ImagePreviewWidgetCrop(QWidget):
         toolbar_layout.setSpacing(12)
         
         # 导入按钮
-        self.btn_import = QPushButton("📁 导入图片")
+        self.btn_import = QPushButton(f"📁 {tr('common.import_image')}")
         self.btn_import.setProperty("class", "secondary")
         self.btn_import.setStyleSheet("""
             QPushButton[class="secondary"] {
@@ -1491,7 +1501,7 @@ class ImagePreviewWidgetCrop(QWidget):
         # 如果是基础编辑模块，添加全屏按钮
         module_name = self.module.get_name() if self.module else ""
         if module_name == "基础编辑":
-            self.btn_fullscreen = QPushButton("⛶ 全屏")
+            self.btn_fullscreen = QPushButton(f"⛶ {tr('common.fullscreen')}")
             self.btn_fullscreen.setProperty("class", "outline")
             self.btn_fullscreen.setStyleSheet("""
                 QPushButton[class="outline"] {
@@ -1524,20 +1534,11 @@ class ImagePreviewWidgetCrop(QWidget):
         layout.addWidget(self.graphics_view, stretch=1)
         
         # 提示标签
-        hint_text = "点击上方\"导入图片\"或点击此处选择图片"
-        if self.module_description:
-            hint_text += f"\n\n📋 功能说明：{self.module_description}"
-        
-        if self.module:
-            try:
-                req = self.module.get_system_requirements()
-                hint_text += "\n\n💻 电脑配置要求："
-                hint_text += f"\n\u3000最低配置：CPU {req['min_cpu']} + 内存 {req['min_ram']}"
-                hint_text += f"\n\u3000推荐配置：CPU {req['rec_cpu']} + 内存 {req['rec_ram']}"
-            except:
-                pass
-        
-        hint_text += "\n\n💡 操作提示：左键拖拽绘制裁剪框 | 拖拽四个角和边缘调整大小 | 拖拽框内移动位置"
+        hint_text = build_preview_hint(
+            self.module_description,
+            self.module,
+            tr("preview.operation_crop_rect"),
+        )
         self.hint_label = ImageLabelWithBackground(hint_text)
         self.hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.hint_label.setStyleSheet("""
@@ -1594,7 +1595,7 @@ class ImagePreviewWidgetCrop(QWidget):
     def import_image(self):
         """导入图片"""
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "选择图片", "", "Images (*.png *.jpg *.jpeg *.bmp *.webp)"
+        self, tr("main.select_image"), "", IMAGE_FILE_FILTER
         )
         if file_path:
             self.load_image(file_path)
@@ -1936,7 +1937,7 @@ class ImagePreviewWidgetSimple(QWidget):
         toolbar_layout.setSpacing(12)
         
         # 导入按钮
-        self.btn_import = QPushButton("📁 导入图片")
+        self.btn_import = QPushButton(f"📁 {tr('common.import_image')}")
         self.btn_import.setProperty("class", "secondary")
         self.btn_import.setStyleSheet("""
             QPushButton[class="secondary"] {
@@ -1981,7 +1982,7 @@ class ImagePreviewWidgetSimple(QWidget):
             
             self.btn_zoom_out = QPushButton("-")
             self.btn_zoom_out.setProperty("class", "icon-button")
-            self.btn_zoom_out.setToolTip("缩小")
+            self.btn_zoom_out.setToolTip(tr("preview.zoom_out"))
             self.btn_zoom_out.setFixedSize(24, 24)
             self.btn_zoom_out.setStyleSheet("""
                 QPushButton[class="icon-button"] {
@@ -2034,7 +2035,7 @@ class ImagePreviewWidgetSimple(QWidget):
             
             self.btn_zoom_in = QPushButton("+")
             self.btn_zoom_in.setProperty("class", "icon-button")
-            self.btn_zoom_in.setToolTip("放大")
+            self.btn_zoom_in.setToolTip(tr("preview.zoom_in"))
             self.btn_zoom_in.setFixedSize(24, 24)
             self.btn_zoom_in.setStyleSheet("""
                 QPushButton[class="icon-button"] {
@@ -2065,7 +2066,7 @@ class ImagePreviewWidgetSimple(QWidget):
                             module_name == "图片加水印" or 
                             module_name == "基础编辑")
         if enable_fullscreen:
-            self.btn_fullscreen = QPushButton("⛶ 全屏")
+            self.btn_fullscreen = QPushButton(f"⛶ {tr('common.fullscreen')}")
             self.btn_fullscreen.setProperty("class", "outline")
             self.btn_fullscreen.setStyleSheet("""
                 QPushButton[class="outline"] {
@@ -2110,19 +2111,7 @@ class ImagePreviewWidgetSimple(QWidget):
         self.scroll_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # 图片标签
-        hint_text = "点击上方\"导入图片\"或点击此处选择图片"
-        if self.module_description:
-            hint_text += f"\n\n📋 功能说明：{self.module_description}"
-        
-        if self.module:
-            try:
-                req = self.module.get_system_requirements()
-                hint_text += "\n\n💻 电脑配置要求："
-                hint_text += f"\n\u3000最低配置：CPU {req['min_cpu']} + 内存 {req['min_ram']}"
-                hint_text += f"\n\u3000推荐配置：CPU {req['rec_cpu']} + 内存 {req['rec_ram']}"
-            except:
-                pass
-        
+        hint_text = build_preview_hint(self.module_description, self.module)
         self.image_label = ImageLabelWithBackground(hint_text)
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setStyleSheet("""
@@ -2189,7 +2178,7 @@ class ImagePreviewWidgetSimple(QWidget):
     def import_image(self):
         """导入图片"""
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "选择图片", "", "Images (*.png *.jpg *.jpeg *.bmp *.webp)"
+        self, tr("main.select_image"), "", IMAGE_FILE_FILTER
         )
         if file_path:
             self.load_image(file_path)
@@ -2811,7 +2800,7 @@ class ImagePreviewWidgetWatermark(QWidget):
         toolbar_layout.setSpacing(12)
         
         # 导入按钮
-        self.btn_import = QPushButton("📁 导入图片")
+        self.btn_import = QPushButton(f"📁 {tr('common.import_image')}")
         self.btn_import.setProperty("class", "secondary")
         self.btn_import.setStyleSheet("""
             QPushButton[class="secondary"] {
@@ -2848,7 +2837,7 @@ class ImagePreviewWidgetWatermark(QWidget):
         toolbar_layout.addStretch()
         
         # 全屏按钮
-        self.btn_fullscreen = QPushButton("⛶ 全屏")
+        self.btn_fullscreen = QPushButton(f"⛶ {tr('common.fullscreen')}")
         self.btn_fullscreen.setProperty("class", "outline")
         self.btn_fullscreen.setStyleSheet("""
             QPushButton[class="outline"] {
@@ -2887,20 +2876,11 @@ class ImagePreviewWidgetWatermark(QWidget):
         layout.addWidget(self.graphics_view, stretch=1)
         
         # 提示标签
-        hint_text = "点击上方\"导入图片\"或点击此处选择图片"
-        if self.module_description:
-            hint_text += f"\n\n📋 功能说明：{self.module_description}"
-        
-        if self.module:
-            try:
-                req = self.module.get_system_requirements()
-                hint_text += "\n\n💻 电脑配置要求："
-                hint_text += f"\n\u3000最低配置：CPU {req['min_cpu']} + 内存 {req['min_ram']}"
-                hint_text += f"\n\u3000推荐配置：CPU {req['rec_cpu']} + 内存 {req['rec_ram']}"
-            except:
-                pass
-        
-        hint_text += "\n\n💡 操作提示：点击水印选中 | 拖拽移动位置 | 拖拽控制点调整大小 | 方向键微调 | Delete删除"
+        hint_text = build_preview_hint(
+            self.module_description,
+            self.module,
+            tr("preview.operation_watermark"),
+        )
         self.hint_label = ImageLabelWithBackground(hint_text)
         self.hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.hint_label.setStyleSheet("""
@@ -2957,7 +2937,7 @@ class ImagePreviewWidgetWatermark(QWidget):
     def import_image(self):
         """导入图片"""
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "选择图片", "", "Images (*.png *.jpg *.jpeg *.bmp *.webp);;All Files (*.*)"
+        self, tr("main.select_image"), "", f"{IMAGE_FILE_FILTER};;{ALL_FILE_FILTER}"
         )
         if file_path:
             self.load_image(file_path)
@@ -3029,3 +3009,4 @@ class ImagePreviewWidgetWatermark(QWidget):
     def get_mask_path(self) -> str:
         """不需要mask"""
         return None
+
