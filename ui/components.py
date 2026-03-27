@@ -704,7 +704,7 @@ class ResultImageWidget(QWidget):
                 except Exception as e:
                     StyledMessageBox.critical(dialog, "错误", f"保存失败：{str(e)}")
 
-        btn_save = QPushButton("?? " + tr("common.save_image"))
+        btn_save = QPushButton(tr("common.save_image"))
         btn_save.setStyleSheet("""
             QPushButton {
                 background-color: hsl(142.1, 76.2%, 36.3%);
@@ -797,7 +797,7 @@ class ResultImageWidget(QWidget):
         toolbar_layout.addWidget(size_label)
 
         # 关闭窗口按钮
-        btn_close = QPushButton("? " + tr("common.close_window"))
+        btn_close = QPushButton(tr("common.close_window"))
         btn_close.setStyleSheet("""
             QPushButton {
                 background-color: hsl(217.2, 32.6%, 17.5%);
@@ -1090,11 +1090,11 @@ class PrintLayoutDialog(QDialog):
         btn_cancel.setStyleSheet(btn_style)
         btn_cancel.clicked.connect(self.reject)
         top_layout.addWidget(btn_cancel)
-        btn_save = QPushButton("?? " + tr("common.save"))
+        btn_save = QPushButton(tr("common.save"))
         btn_save.setStyleSheet("QPushButton { background-color: hsl(142.1, 76.2%, 36.3%); color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; } QPushButton:hover { background-color: hsl(142.1, 76.2%, 42%); }")
         btn_save.clicked.connect(self._on_save)
         top_layout.addWidget(btn_save)
-        btn_print = QPushButton("?? " + tr("common.print"))
+        btn_print = QPushButton(tr("common.print"))
         btn_print.setStyleSheet("QPushButton { background-color: hsl(262.1, 83.3%, 57.8%); color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; } QPushButton:hover { background-color: hsl(262.1, 83.3%, 63%); }")
         btn_print.clicked.connect(self._on_print)
         top_layout.addWidget(btn_print)
@@ -2278,7 +2278,7 @@ class IDPhotoResultWidget(QWidget):
                 )
                 print_dialog.exec()
         
-        btn_print = QPushButton("??? " + tr("common.print_layout"))
+        btn_print = QPushButton(tr("common.print_layout"))
         btn_print.setStyleSheet("""
             QPushButton {
                 background-color: hsl(221.2, 83.2%, 53.3%);
@@ -2587,7 +2587,7 @@ class IDPhotoResultWidget(QWidget):
                 
                 save_dialog.exec()
         
-        btn_save = QPushButton("?? " + tr("common.save"))
+        btn_save = QPushButton(tr("common.save"))
         btn_save.setStyleSheet("""
             QPushButton {
                 background-color: hsl(142.1, 76.2%, 36.3%);
@@ -2604,7 +2604,7 @@ class IDPhotoResultWidget(QWidget):
         btn_save.clicked.connect(save_image)
         toolbar_layout.addWidget(btn_save)
         
-        btn_close = QPushButton("? " + tr("common.close"))
+        btn_close = QPushButton(tr("common.close"))
         btn_close.setStyleSheet("""
             QPushButton {
                 background-color: hsl(217.2, 32.6%, 17.5%);

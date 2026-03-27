@@ -199,7 +199,7 @@ class AuthCodeDialog(QDialog):
         get_code_layout.setContentsMargins(0, 0, 0, 0)
         get_code_layout.setSpacing(0)
         
-        self.btn_get_code = QPushButton("?? " + tr("auth.dialog.get_code"))
+        self.btn_get_code = QPushButton(tr("auth.dialog.get_code"))
         self.btn_get_code.setObjectName("btn_get_code")
         self.btn_get_code.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_get_code.clicked.connect(self.on_get_code)
@@ -218,13 +218,13 @@ class AuthCodeDialog(QDialog):
         button_layout.setContentsMargins(0, 0, 0, 0)
         button_layout.setSpacing(12)
         
-        btn_cancel = QPushButton("? " + tr("common.cancel"))
+        btn_cancel = QPushButton(tr("common.cancel"))
         btn_cancel.clicked.connect(self.reject)
         button_layout.addWidget(btn_cancel)
         
         button_layout.addStretch()
         
-        self.btn_confirm = QPushButton("? " + tr("auth.dialog.confirm"))
+        self.btn_confirm = QPushButton(tr("auth.dialog.confirm"))
         self.btn_confirm.setObjectName("btn_confirm")
         self.btn_confirm.clicked.connect(self.on_confirm)
         button_layout.addWidget(self.btn_confirm)
