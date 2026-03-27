@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "छवि सहेजें",
     "common.save": "सहेजें",
     "common.print": "प्रिंट",
+    "common.import_image": "\u091b\u0935\u093f \u0906\u092f\u093e\u0924 \u0915\u0930\u0947\u0902",
     "main.start_process": "प्रोसेसिंग शुरू करें",
     "main.processing": "प्रोसेसिंग चल रही है | स्थानीय AI मॉडल ऑफ़लाइन उपयोग किया जा रहा है\nप्रोसेसिंग गति आपके कंप्यूटर पर निर्भर करती है। अनुमानित समय: {estimated_time}। कृपया धैर्य रखें।",
     "main.result": "प्रोसेसिंग परिणाम",

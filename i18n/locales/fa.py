@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "ذخیره تصویر",
     "common.save": "ذخیره",
     "common.print": "چاپ",
+    "common.import_image": "\u0648\u0627\u0631\u062f \u06a9\u0631\u062f\u0646 \u062a\u0635\u0648\u06cc\u0631",
     "main.start_process": "شروع پردازش",
     "main.processing": "در حال پردازش | استفاده از مدل محلی هوش مصنوعی به‌صورت آفلاین\nسرعت پردازش به رایانه شما بستگی دارد. زمان تخمینی: {estimated_time}. لطفاً صبور باشید.",
     "main.result": "نتیجه پردازش",

@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "Görseli Kaydet",
     "common.save": "Kaydet",
     "common.print": "Yazdır",
+    "common.import_image": "Resim i\u00e7e aktar",
     "main.start_process": "İşlemeyi Başlat",
     "main.processing": "İşleniyor | Yerel AI modeli çevrimdışı kullanılıyor\nİşlem hızı bilgisayarınıza bağlıdır. Tahmini süre: {estimated_time}. Lütfen sabırla bekleyin.",
     "main.result": "İşlem Sonucu",

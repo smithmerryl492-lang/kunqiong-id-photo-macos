@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "儲存圖片",
     "common.save": "儲存",
     "common.print": "列印",
+    "common.import_image": "\u532f\u5165\u5716\u7247",
     "main.start_process": "開始處理",
     "main.processing": "正在處理 | 使用本機 AI 模型離線處理\n處理速度取決於您的電腦配置，預計 {estimated_time}，請耐心等候。",
     "main.result": "處理結果",

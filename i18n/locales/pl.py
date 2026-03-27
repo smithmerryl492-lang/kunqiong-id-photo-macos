@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "Zapisz obraz",
     "common.save": "Zapisz",
     "common.print": "Drukuj",
+    "common.import_image": 'Importuj obraz',
     "main.start_process": "Rozpocznij przetwarzanie",
     "main.processing": "Przetwarzanie | Używanie lokalnego modelu AI offline\nSzybkość przetwarzania zależy od twojego komputera. Szacowany czas: {estimated_time}. Proszę cierpliwie czekać.",
     "main.result": "Wynik przetwarzania",

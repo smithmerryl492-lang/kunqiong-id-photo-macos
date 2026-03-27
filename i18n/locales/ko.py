@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "이미지 저장",
     "common.save": "저장",
     "common.print": "인쇄",
+    "common.import_image": "\uc774\ubbf8\uc9c0 \uac00\uc838\uc624\uae30",
     "main.start_process": "처리 시작",
     "main.processing": "처리 중 | 로컬 AI 모델을 오프라인으로 사용 중입니다\n처리 속도는 컴퓨터 성능에 따라 달라집니다. 예상 시간: {estimated_time}. 잠시만 기다려 주세요.",
     "main.result": "처리 결과",

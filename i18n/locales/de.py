@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "Bild speichern",
     "common.save": "Speichern",
     "common.print": "Drucken",
+    "common.import_image": 'Bild importieren',
     "main.start_process": "Verarbeitung starten",
     "main.processing": "Wird verarbeitet | Das lokale KI-Modell läuft offline\nDie Verarbeitungsgeschwindigkeit hängt von Ihrem Computer ab. Geschätzte Zeit: {estimated_time}. Bitte warten Sie geduldig.",
     "main.result": "Verarbeitungsergebnis",

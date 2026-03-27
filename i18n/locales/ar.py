@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "حفظ الصورة",
     "common.save": "حفظ",
     "common.print": "طباعة",
+    "common.import_image": "\u0627\u0633\u062a\u064a\u0631\u0627\u062f \u0635\u0648\u0631\u0629",
     "main.start_process": "بدء المعالجة",
     "main.processing": "جارٍ المعالجة | باستخدام نموذج الذكاء الاصطناعي المحلي دون اتصال\nتعتمد سرعة المعالجة على جهازك. الوقت التقديري: {estimated_time}. يرجى الانتظار بصبر.",
     "main.result": "نتيجة المعالجة",

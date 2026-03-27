@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "Simpan Imej",
     "common.save": "Simpan",
     "common.print": "Cetak",
+    "common.import_image": 'Import Imej',
     "main.start_process": "Mula Memproses",
     "main.processing": "Sedang memproses | Menggunakan model AI tempatan secara luar talian\nKelajuan pemprosesan bergantung pada komputer anda. Anggaran masa: {estimated_time}. Sila tunggu dengan sabar.",
     "main.result": "Hasil Pemprosesan",

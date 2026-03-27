@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "படத்தைச் சேமி",
     "common.save": "சேமி",
     "common.print": "அச்சிடு",
+    "common.import_image": "\u0baa\u0b9f\u0ba4\u0bcd\u0ba4\u0bc8 \u0b87\u0bb1\u0b95\u0bcd\u0b95\u0bc1\u0bae\u0ba4\u0bbf \u0b9a\u0bc6\u0baf\u0bcd",
     "main.start_process": "செயலாக்கத்தை தொடங்கு",
     "main.processing": "செயலாக்கம் நடைபெறுகிறது | உள்ளூர் AI மாடல் ஆஃப்லைனில் பயன்படுத்தப்படுகிறது\nசெயலாக்க வேகம் உங்கள் கணினியைப் பொறுத்தது. கணிக்கப்பட்ட நேரம்: {estimated_time}. தயவுசெய்து பொறுமையாக காத்திருக்கவும்.",
     "main.result": "செயலாக்க முடிவு",

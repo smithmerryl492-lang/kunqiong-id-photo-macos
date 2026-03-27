@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "I-save ang Larawan",
     "common.save": "I-save",
     "common.print": "I-print",
+    "common.import_image": 'Mag-import ng larawan',
     "main.start_process": "Simulan ang Pagproseso",
     "main.processing": "Nagpoproseso | Ginagamit ang lokal na AI model offline\nNakadepende ang bilis ng pagproseso sa iyong computer. Tinatayang oras: {estimated_time}. Mangyaring maghintay nang mahinahon.",
     "main.result": "Resulta ng Pagproseso",

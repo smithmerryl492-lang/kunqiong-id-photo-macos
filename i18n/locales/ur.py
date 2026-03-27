@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "تصویر محفوظ کریں",
     "common.save": "محفوظ کریں",
     "common.print": "پرنٹ",
+    "common.import_image": "\u062a\u0635\u0648\u06cc\u0631 \u062f\u0631\u0622\u0645\u062f \u06a9\u0631\u06cc\u06ba",
     "main.start_process": "پروسیسنگ شروع کریں",
     "main.processing": "پروسیسنگ جاری ہے | مقامی AI ماڈل آف لائن استعمال ہو رہا ہے\nپروسیسنگ کی رفتار آپ کے کمپیوٹر پر منحصر ہے۔ اندازاً وقت: {estimated_time}. براہ کرم صبر کریں۔",
     "main.result": "پروسیسنگ نتیجہ",

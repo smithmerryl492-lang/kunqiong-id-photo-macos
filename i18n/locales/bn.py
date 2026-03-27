@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "ছবি সংরক্ষণ",
     "common.save": "সংরক্ষণ",
     "common.print": "প্রিন্ট",
+    "common.import_image": "\u099b\u09ac\u09bf \u0986\u09ae\u09a6\u09be\u09a8\u09bf",
     "main.start_process": "প্রক্রিয়া শুরু",
     "main.processing": "প্রক্রিয়াকরণ চলছে | স্থানীয় AI মডেল অফলাইনে ব্যবহার করা হচ্ছে\nপ্রক্রিয়াকরণের গতি আপনার কম্পিউটারের উপর নির্ভর করে। আনুমানিক সময়: {estimated_time}। অনুগ্রহ করে ধৈর্য ধরুন।",
     "main.result": "প্রক্রিয়াকরণের ফলাফল",

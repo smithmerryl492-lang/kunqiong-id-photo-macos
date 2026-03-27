@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "Afbeelding opslaan",
     "common.save": "Opslaan",
     "common.print": "Afdrukken",
+    "common.import_image": 'Afbeelding importeren',
     "main.start_process": "Verwerking starten",
     "main.processing": "Bezig met verwerken | Het lokale AI-model wordt offline gebruikt\nDe verwerkingssnelheid hangt af van uw computer. Geschatte tijd: {estimated_time}. Even geduld alstublieft.",
     "main.result": "Verwerkingsresultaat",

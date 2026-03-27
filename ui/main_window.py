@@ -1386,10 +1386,6 @@ class MainWindow(QMainWindow):
                 color: hsl(213, 31%, 91%);
             }
         """)
-        self._populate_locale_combo()
-        self.locale_combo.currentIndexChanged.connect(self._on_locale_changed)
-        top_btn_layout.addWidget(self.locale_combo)
-        top_btn_layout.addSpacing(8)
         top_btn_layout.addStretch()
         btn_style_min = """
             QPushButton {
@@ -1450,6 +1446,10 @@ class MainWindow(QMainWindow):
         self.btn_minimize.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_minimize.setStyleSheet(btn_style_min)
         self.btn_minimize.clicked.connect(self._do_minimize)
+        self._populate_locale_combo()
+        self.locale_combo.currentIndexChanged.connect(self._on_locale_changed)
+        top_btn_layout.addWidget(self.locale_combo)
+        top_btn_layout.addSpacing(8)
         top_btn_layout.addWidget(self.btn_minimize)
         
         # 最大化/还原按钮

@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "Salva immagine",
     "common.save": "Salva",
     "common.print": "Stampa",
+    "common.import_image": 'Importa immagine',
     "main.start_process": "Avvia elaborazione",
     "main.processing": "Elaborazione in corso | Utilizzo del modello AI locale offline\nLa velocità di elaborazione dipende dal tuo computer. Tempo stimato: {estimated_time}. Attendi pazientemente.",
     "main.result": "Risultato dell'elaborazione",

@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "บันทึกรูปภาพ",
     "common.save": "บันทึก",
     "common.print": "พิมพ์",
+    "common.import_image": "\u0e19\u0e33\u0e40\u0e02\u0e49\u0e32\u0e23\u0e39\u0e1b\u0e20\u0e32\u0e1e",
     "main.start_process": "เริ่มประมวลผล",
     "main.processing": "กำลังประมวลผล | ใช้โมเดล AI ในเครื่องแบบออฟไลน์\nความเร็วในการประมวลผลขึ้นอยู่กับคอมพิวเตอร์ของคุณ เวลาประมาณ: {estimated_time} กรุณารอสักครู่",
     "main.result": "ผลการประมวลผล",

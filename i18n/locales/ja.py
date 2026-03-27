@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "画像を保存",
     "common.save": "保存",
     "common.print": "印刷",
+    "common.import_image": "\u753b\u50cf\u3092\u30a4\u30f3\u30dd\u30fc\u30c8",
     "main.start_process": "処理を開始",
     "main.processing": "処理中 | ローカルAIモデルをオフラインで使用しています\n処理速度はお使いのコンピューターに依存します。推定時間: {estimated_time}。しばらくお待ちください。",
     "main.result": "処理結果",

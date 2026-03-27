@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "Hifadhi Picha",
     "common.save": "Hifadhi",
     "common.print": "Chapisha",
+    "common.import_image": 'Ingiza picha',
     "main.start_process": "Anza Kuchakata",
     "main.processing": "Inachakata | Inatumia modeli ya AI ya ndani nje ya mtandao\nKasi ya uchakataji inategemea kompyuta yako. Muda unaokadiriwa: {estimated_time}. Tafadhali subiri kwa subira.",
     "main.result": "Matokeo ya Uchakataji",

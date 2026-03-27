@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "שמירת תמונה",
     "common.save": "שמירה",
     "common.print": "הדפסה",
+    "common.import_image": "\u05d9\u05d9\u05d1\u05d5\u05d0 \u05ea\u05de\u05d5\u05e0\u05d4",
     "main.start_process": "התחלת עיבוד",
     "main.processing": "מעבד | באמצעות מודל ה-AI המקומי במצב לא מקוון\nמהירות העיבוד תלויה במחשב שלך. זמן משוער: {estimated_time}. נא להמתין בסבלנות.",
     "main.result": "תוצאת העיבוד",

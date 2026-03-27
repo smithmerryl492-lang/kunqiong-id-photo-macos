@@ -16,6 +16,7 @@ MESSAGES = {
     "common.save_image": "Lưu ảnh",
     "common.save": "Lưu",
     "common.print": "In",
+    "common.import_image": "Nh\u1eadp \u1ea3nh",
     "main.start_process": "Bắt đầu xử lý",
     "main.processing": "Đang xử lý | Sử dụng mô hình AI cục bộ ngoại tuyến\nTốc độ xử lý phụ thuộc vào máy tính của bạn. Thời gian ước tính: {estimated_time}. Vui lòng chờ một chút.",
     "main.result": "Kết quả xử lý",
