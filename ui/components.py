@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 import tempfile
 from i18n import tr
+from ui.emoji_icons import set_button_emoji_icon
 
 # 从 id_photo 模块导入翻译函数
 from modules.id_photo import translate_color_dialog_to_chinese
@@ -705,6 +706,7 @@ class ResultImageWidget(QWidget):
                     StyledMessageBox.critical(dialog, "错误", f"保存失败：{str(e)}")
 
         btn_save = QPushButton(tr("common.save_image"))
+        set_button_emoji_icon(btn_save, "💾")
         btn_save.setStyleSheet("""
             QPushButton {
                 background-color: hsl(142.1, 76.2%, 36.3%);
@@ -798,6 +800,7 @@ class ResultImageWidget(QWidget):
 
         # 关闭窗口按钮
         btn_close = QPushButton(tr("common.close_window"))
+        set_button_emoji_icon(btn_close, "❌")
         btn_close.setStyleSheet("""
             QPushButton {
                 background-color: hsl(217.2, 32.6%, 17.5%);
@@ -1091,10 +1094,12 @@ class PrintLayoutDialog(QDialog):
         btn_cancel.clicked.connect(self.reject)
         top_layout.addWidget(btn_cancel)
         btn_save = QPushButton(tr("common.save"))
+        set_button_emoji_icon(btn_save, "💾")
         btn_save.setStyleSheet("QPushButton { background-color: hsl(142.1, 76.2%, 36.3%); color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; } QPushButton:hover { background-color: hsl(142.1, 76.2%, 42%); }")
         btn_save.clicked.connect(self._on_save)
         top_layout.addWidget(btn_save)
         btn_print = QPushButton(tr("common.print"))
+        set_button_emoji_icon(btn_print, "🖨️")
         btn_print.setStyleSheet("QPushButton { background-color: hsl(262.1, 83.3%, 57.8%); color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; } QPushButton:hover { background-color: hsl(262.1, 83.3%, 63%); }")
         btn_print.clicked.connect(self._on_print)
         top_layout.addWidget(btn_print)
@@ -2279,6 +2284,7 @@ class IDPhotoResultWidget(QWidget):
                 print_dialog.exec()
         
         btn_print = QPushButton(tr("common.print_layout"))
+        set_button_emoji_icon(btn_print, "🖨️")
         btn_print.setStyleSheet("""
             QPushButton {
                 background-color: hsl(221.2, 83.2%, 53.3%);
@@ -2588,6 +2594,7 @@ class IDPhotoResultWidget(QWidget):
                 save_dialog.exec()
         
         btn_save = QPushButton(tr("common.save"))
+        set_button_emoji_icon(btn_save, "💾")
         btn_save.setStyleSheet("""
             QPushButton {
                 background-color: hsl(142.1, 76.2%, 36.3%);
@@ -2605,6 +2612,7 @@ class IDPhotoResultWidget(QWidget):
         toolbar_layout.addWidget(btn_save)
         
         btn_close = QPushButton(tr("common.close"))
+        set_button_emoji_icon(btn_close, "❌")
         btn_close.setStyleSheet("""
             QPushButton {
                 background-color: hsl(217.2, 32.6%, 17.5%);

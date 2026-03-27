@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer, QEvent
 from PyQt6.QtGui import QFont, QPixmap
 from i18n import tr
+from ui.emoji_icons import set_button_emoji_icon
 
 
 class AuthCodeDialog(QDialog):
@@ -200,6 +201,7 @@ class AuthCodeDialog(QDialog):
         get_code_layout.setSpacing(0)
         
         self.btn_get_code = QPushButton(tr("auth.dialog.get_code"))
+        set_button_emoji_icon(self.btn_get_code, "🛒")
         self.btn_get_code.setObjectName("btn_get_code")
         self.btn_get_code.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_get_code.clicked.connect(self.on_get_code)
@@ -219,12 +221,14 @@ class AuthCodeDialog(QDialog):
         button_layout.setSpacing(12)
         
         btn_cancel = QPushButton(tr("common.cancel"))
+        set_button_emoji_icon(btn_cancel, "❌")
         btn_cancel.clicked.connect(self.reject)
         button_layout.addWidget(btn_cancel)
         
         button_layout.addStretch()
         
         self.btn_confirm = QPushButton(tr("auth.dialog.confirm"))
+        set_button_emoji_icon(self.btn_confirm, "🔑")
         self.btn_confirm.setObjectName("btn_confirm")
         self.btn_confirm.clicked.connect(self.on_confirm)
         button_layout.addWidget(self.btn_confirm)

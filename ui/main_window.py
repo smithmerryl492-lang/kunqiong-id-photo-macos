@@ -15,6 +15,7 @@ from PyQt6.QtGui import QPixmap, QIcon, QColor
 from ui.styles_tailwind import TAILWIND_SHADCN_STYLESHEET
 from ui.components_v2 import ImagePreviewWidgetV2, ImagePreviewWidgetRect, ImagePreviewWidgetSimple, ImagePreviewWidgetCrop, ImagePreviewWidgetWatermark
 from ui.components import ResultImageWidget, IDPhotoResultWidget
+from ui.emoji_icons import set_button_emoji_icon
 try:
     from ui.fullscreen_editor_v2 import FullScreenEditorV2 as FullScreenEditor, FullScreenRectEditor
     from ui.fullscreen_watermark_dialog import FullscreenWatermarkDialog
@@ -393,7 +394,8 @@ class ModuleTab(QWidget):
         action_container = QWidget()
         action_layout = QVBoxLayout(action_container)
         action_layout.setSpacing(12)
-        self.btn_process = QPushButton("🚀 " + tr("main.start_process"))
+        self.btn_process = QPushButton(tr("main.start_process"))
+        set_button_emoji_icon(self.btn_process, "🚀")
         self.btn_process.setObjectName("btn_process")
         self.btn_process.setStyleSheet("""
             QPushButton#btn_process {
@@ -488,7 +490,8 @@ class ModuleTab(QWidget):
         self.id_photo_result_widget = IDPhotoResultWidget()
         self.id_photo_result_widget.setVisible(False)
         self.right_panel_layout.addWidget(self.id_photo_result_widget, stretch=1)
-        self.btn_save = QPushButton("💾 " + tr("main.save_result"))
+        self.btn_save = QPushButton(tr("main.save_result"))
+        set_button_emoji_icon(self.btn_save, "💾")
         self.btn_save.setProperty("class", "secondary")
         self.btn_save.setStyleSheet("""
             QPushButton[class="secondary"] {
