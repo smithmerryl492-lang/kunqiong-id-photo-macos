@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "גרדיאנט מרכזי (לבן)",
     "id_photo.face_detect_fast": "מצב מהיר",
     "id_photo.face_detect_high_accuracy": "מצב דיוק גבוה",
+    "module.id_photo.description": "הסרת רקע אוטומטית, החלפת צבע הרקע ויצירת תמונת תעודה תקנית (בהתאם לתקנים הסיניים).",
+    "preview.import_hint": "לחץ על \"ייבוא תמונה\" למעלה או לחץ כאן כדי לבחור תמונה",
+    "preview.feature_description": "תיאור הפיצ'ר",
+    "preview.system_requirements": "דרישות מערכת:",
+    "preview.minimum_requirements": "תצורה מינימלית",
+    "preview.recommended_requirements": "תצורה מומלצת",
+    "preview.memory": "זיכרון",
+    "preview.cpu_cores": "{count} ליבות",
+    "preview.memory_gb": "{count} ג\"ב",
 }

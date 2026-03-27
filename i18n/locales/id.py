@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Gradasi Tengah (Putih)",
     "id_photo.face_detect_fast": "Mode Cepat",
     "id_photo.face_detect_high_accuracy": "Mode Akurasi Tinggi",
+    "module.id_photo.description": "Penghapusan latar belakang otomatis, penggantian warna latar, dan pembuatan foto identitas standar (sesuai standar Tiongkok).",
+    "preview.import_hint": "Klik \"Impor Gambar\" di atas atau klik di sini untuk memilih gambar",
+    "preview.feature_description": "Deskripsi Fitur",
+    "preview.system_requirements": "Persyaratan Sistem:",
+    "preview.minimum_requirements": "Konfigurasi minimum",
+    "preview.recommended_requirements": "Konfigurasi yang disarankan",
+    "preview.memory": "Memori",
+    "preview.cpu_cores": "{count} inti",
+    "preview.memory_gb": "{count} GB",
 }

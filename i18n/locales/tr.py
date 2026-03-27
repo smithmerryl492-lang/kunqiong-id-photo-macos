@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Merkez Gradyan (Beyaz)",
     "id_photo.face_detect_fast": "Hızlı Mod",
     "id_photo.face_detect_high_accuracy": "Yüksek Doğruluk Modu",
+    "module.id_photo.description": "Otomatik arka plan kaldırma, arka plan rengini değiştirme ve Çin standartlarına uygun vesikalık oluşturma.",
+    "preview.import_hint": "Yukarıdaki \"Resim İçe Aktar\" düğmesine tıklayın veya bir resim seçmek için buraya tıklayın",
+    "preview.feature_description": "Özellik Açıklaması",
+    "preview.system_requirements": "Sistem Gereksinimleri:",
+    "preview.minimum_requirements": "Minimum yapılandırma",
+    "preview.recommended_requirements": "Önerilen yapılandırma",
+    "preview.memory": "Bellek",
+    "preview.cpu_cores": "{count} çekirdek",
+    "preview.memory_gb": "{count} GB",
 }

@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "تدرج مركزي (أبيض)",
     "id_photo.face_detect_fast": "الوضع السريع",
     "id_photo.face_detect_high_accuracy": "وضع الدقة العالية",
+    "module.id_photo.description": "إزالة الخلفية تلقائيًا، وتغيير لون الخلفية، وإنشاء صور هوية قياسية (وفقًا للمعايير الصينية).",
+    "preview.import_hint": "انقر فوق \"استيراد صورة\" أعلاه أو انقر هنا لاختيار صورة",
+    "preview.feature_description": "وصف الميزة",
+    "preview.system_requirements": "متطلبات النظام:",
+    "preview.minimum_requirements": "الحد الأدنى للمواصفات",
+    "preview.recommended_requirements": "المواصفات الموصى بها",
+    "preview.memory": "الذاكرة",
+    "preview.cpu_cores": "{count} أنوية",
+    "preview.memory_gb": "{count} جيجابايت",
 }

@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Gradiente sa Gitna (Puti)",
     "id_photo.face_detect_fast": "Mabilis na Mode",
     "id_photo.face_detect_high_accuracy": "Mode na Mataas ang Katumpakan",
+    "module.id_photo.description": "Awtomatikong pag-alis ng background, pagpapalit ng kulay ng background, at pagbuo ng karaniwang ID photo (ayon sa mga pamantayan ng China).",
+    "preview.import_hint": "I-click ang \"Import Image\" sa itaas o i-click dito upang pumili ng larawan",
+    "preview.feature_description": "Paglalarawan ng Tampok",
+    "preview.system_requirements": "Mga Kinakailangan sa System:",
+    "preview.minimum_requirements": "Pinakamababang configuration",
+    "preview.recommended_requirements": "Inirerekomendang configuration",
+    "preview.memory": "Memorya",
+    "preview.cpu_cores": "{count} core",
+    "preview.memory_gb": "{count} GB",
 }

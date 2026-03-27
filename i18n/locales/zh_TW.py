@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "中心漸變（白色）",
     "id_photo.face_detect_fast": "快速模式",
     "id_photo.face_detect_high_accuracy": "高精度模式",
+    "module.id_photo.description": "自動去背、更換背景顏色，並生成符合中國標準的證件照",
+    "preview.import_hint": "點擊上方「匯入圖片」或點擊此處選擇圖片",
+    "preview.feature_description": "功能說明",
+    "preview.system_requirements": "系統需求：",
+    "preview.minimum_requirements": "最低配置",
+    "preview.recommended_requirements": "建議配置",
+    "preview.memory": "記憶體",
+    "preview.cpu_cores": "{count}核心",
+    "preview.memory_gb": "{count}GB",
 }

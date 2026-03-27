@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "ไล่ระดับกลาง (สีขาว)",
     "id_photo.face_detect_fast": "โหมดเร็ว",
     "id_photo.face_detect_high_accuracy": "โหมดความแม่นยำสูง",
+    "module.id_photo.description": "ลบพื้นหลังอัตโนมัติ เปลี่ยนสีพื้นหลัง และสร้างรูปถ่ายติดบัตรมาตรฐาน (ตามมาตรฐานจีน)",
+    "preview.import_hint": "คลิก \"นำเข้ารูปภาพ\" ด้านบน หรือคลิกที่นี่เพื่อเลือกรูปภาพ",
+    "preview.feature_description": "คำอธิบายฟังก์ชัน",
+    "preview.system_requirements": "ความต้องการของระบบ:",
+    "preview.minimum_requirements": "ขั้นต่ำ",
+    "preview.recommended_requirements": "แนะนำ",
+    "preview.memory": "หน่วยความจำ",
+    "preview.cpu_cores": "{count} คอร์",
+    "preview.memory_gb": "{count} GB",
 }

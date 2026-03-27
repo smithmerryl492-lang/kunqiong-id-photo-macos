@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Gradien Tengah (Putih)",
     "id_photo.face_detect_fast": "Mod Pantas",
     "id_photo.face_detect_high_accuracy": "Mod Ketepatan Tinggi",
+    "module.id_photo.description": "Buang latar belakang secara automatik, tukar warna latar belakang, dan jana foto ID standard (selaras dengan piawaian China).",
+    "preview.import_hint": "Klik \"Import Imej\" di atas atau klik di sini untuk memilih imej",
+    "preview.feature_description": "Penerangan Fungsi",
+    "preview.system_requirements": "Keperluan Sistem:",
+    "preview.minimum_requirements": "Konfigurasi minimum",
+    "preview.recommended_requirements": "Konfigurasi disyorkan",
+    "preview.memory": "Memori",
+    "preview.cpu_cores": "{count} teras",
+    "preview.memory_gb": "{count} GB",
 }

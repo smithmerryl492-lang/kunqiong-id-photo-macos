@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "중앙 그라데이션(흰색)",
     "id_photo.face_detect_fast": "빠른 모드",
     "id_photo.face_detect_high_accuracy": "고정확도 모드",
+    "module.id_photo.description": "자동 배경 제거, 배경색 변경, 중국 규격에 맞는 증명사진 생성.",
+    "preview.import_hint": "위의 \"이미지 가져오기\"를 클릭하거나 여기를 클릭해 이미지를 선택하세요",
+    "preview.feature_description": "기능 설명",
+    "preview.system_requirements": "시스템 요구 사항:",
+    "preview.minimum_requirements": "최소 사양",
+    "preview.recommended_requirements": "권장 사양",
+    "preview.memory": "메모리",
+    "preview.cpu_cores": "{count}코어",
+    "preview.memory_gb": "{count}GB",
 }

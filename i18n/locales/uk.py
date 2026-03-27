@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Центральний градієнт (білий)",
     "id_photo.face_detect_fast": "Швидкий режим",
     "id_photo.face_detect_high_accuracy": "Режим високої точності",
+    "module.id_photo.description": "Автоматичне видалення фону, зміна кольору фону та створення стандартних фото на документи (відповідно до китайських стандартів).",
+    "preview.import_hint": "Натисніть «Імпортувати зображення» вище або натисніть тут, щоб вибрати зображення",
+    "preview.feature_description": "Опис функції",
+    "preview.system_requirements": "Системні вимоги:",
+    "preview.minimum_requirements": "Мінімальна конфігурація",
+    "preview.recommended_requirements": "Рекомендована конфігурація",
+    "preview.memory": "Пам’ять",
+    "preview.cpu_cores": "{count} ядра",
+    "preview.memory_gb": "{count} ГБ",
 }

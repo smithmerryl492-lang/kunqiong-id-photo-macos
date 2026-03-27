@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Dégradé central (blanc)",
     "id_photo.face_detect_fast": "Mode rapide",
     "id_photo.face_detect_high_accuracy": "Mode haute précision",
+    "module.id_photo.description": "Suppression automatique de l'arrière-plan, remplacement de la couleur de fond et génération de photos d'identité standard (conformes aux normes chinoises).",
+    "preview.import_hint": "Cliquez sur \"Importer une image\" ci-dessus ou cliquez ici pour sélectionner une image",
+    "preview.feature_description": "Description de la fonctionnalité",
+    "preview.system_requirements": "Configuration requise :",
+    "preview.minimum_requirements": "Configuration minimale",
+    "preview.recommended_requirements": "Configuration recommandée",
+    "preview.memory": "Mémoire",
+    "preview.cpu_cores": "{count} cœurs",
+    "preview.memory_gb": "{count} Go",
 }

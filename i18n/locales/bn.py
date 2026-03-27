@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "কেন্দ্র গ্রেডিয়েন্ট (সাদা)",
     "id_photo.face_detect_fast": "দ্রুত মোড",
     "id_photo.face_detect_high_accuracy": "উচ্চ নির্ভুলতা মোড",
+    "module.id_photo.description": "স্বয়ংক্রিয়ভাবে ব্যাকগ্রাউন্ড অপসারণ, ব্যাকগ্রাউন্ডের রঙ পরিবর্তন এবং মানসম্মত আইডি ছবি তৈরি (চীনা মান অনুযায়ী)।",
+    "preview.import_hint": "উপরে \"ছবি আমদানি করুন\" এ ক্লিক করুন, অথবা ছবি বাছাই করতে এখানে ক্লিক করুন",
+    "preview.feature_description": "ফিচারের বিবরণ",
+    "preview.system_requirements": "সিস্টেমের প্রয়োজনীয়তা:",
+    "preview.minimum_requirements": "ন্যূনতম কনফিগারেশন",
+    "preview.recommended_requirements": "প্রস্তাবিত কনফিগারেশন",
+    "preview.memory": "মেমরি",
+    "preview.cpu_cores": "{count} কোর",
+    "preview.memory_gb": "{count} জিবি",
 }

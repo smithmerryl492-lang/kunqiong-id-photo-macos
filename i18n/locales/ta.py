@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "மைய கிரேடியண்ட் (வெள்ளை)",
     "id_photo.face_detect_fast": "வேக முறை",
     "id_photo.face_detect_high_accuracy": "உயர் துல்லிய முறை",
+    "module.id_photo.description": "பின்னணியை தானாக நீக்குதல், பின்னணி நிறத்தை மாற்றுதல், மற்றும் சீன தரநிலைகளுக்கு ஏற்ப நிலையான அடையாளப் புகைப்படம் உருவாக்குதல்.",
+    "preview.import_hint": "மேலே உள்ள \"படத்தை இறக்குமதி செய்\" என்பதை கிளிக் செய்யவும் அல்லது படத்தைத் தேர்ந்தெடுக்க இங்கே கிளிக் செய்யவும்",
+    "preview.feature_description": "அம்ச விளக்கம்",
+    "preview.system_requirements": "கணினி தேவைகள்:",
+    "preview.minimum_requirements": "குறைந்தபட்ச அமைப்பு",
+    "preview.recommended_requirements": "பரிந்துரைக்கப்பட்ட அமைப்பு",
+    "preview.memory": "நினைவகம்",
+    "preview.cpu_cores": "{count} கோர்",
+    "preview.memory_gb": "{count} GB",
 }

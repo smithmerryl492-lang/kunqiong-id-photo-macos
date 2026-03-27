@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Gradient centralny (biały)",
     "id_photo.face_detect_fast": "Tryb szybki",
     "id_photo.face_detect_high_accuracy": "Tryb wysokiej dokładności",
+    "module.id_photo.description": "Automatyczne usuwanie tła, zmiana koloru tła i generowanie standardowych zdjęć dokumentowych (zgodnych z chińskimi normami).",
+    "preview.import_hint": "Kliknij powyżej „Importuj obraz” lub kliknij tutaj, aby wybrać obraz",
+    "preview.feature_description": "Opis funkcji",
+    "preview.system_requirements": "Wymagania systemowe:",
+    "preview.minimum_requirements": "Minimalna konfiguracja",
+    "preview.recommended_requirements": "Zalecana konfiguracja",
+    "preview.memory": "Pamięć",
+    "preview.cpu_cores": "{count} rdzenie",
+    "preview.memory_gb": "{count} GB",
 }

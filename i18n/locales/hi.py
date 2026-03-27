@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "केंद्र ग्रेडिएंट (सफ़ेद)",
     "id_photo.face_detect_fast": "तेज़ मोड",
     "id_photo.face_detect_high_accuracy": "उच्च सटीकता मोड",
+    "module.id_photo.description": "स्वचालित पृष्ठभूमि हटाना, पृष्ठभूमि का रंग बदलना और मानक आईडी फोटो बनाना (चीनी मानकों के अनुरूप)।",
+    "preview.import_hint": "ऊपर \"छवि आयात करें\" पर क्लिक करें या छवि चुनने के लिए यहां क्लिक करें",
+    "preview.feature_description": "फ़ीचर विवरण",
+    "preview.system_requirements": "सिस्टम आवश्यकताएँ:",
+    "preview.minimum_requirements": "न्यूनतम कॉन्फ़िगरेशन",
+    "preview.recommended_requirements": "अनुशंसित कॉन्फ़िगरेशन",
+    "preview.memory": "मेमोरी",
+    "preview.cpu_cores": "{count} कोर",
+    "preview.memory_gb": "{count} GB",
 }

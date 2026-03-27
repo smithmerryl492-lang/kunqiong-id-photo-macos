@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "中央グラデーション（白）",
     "id_photo.face_detect_fast": "高速モード",
     "id_photo.face_detect_high_accuracy": "高精度モード",
+    "module.id_photo.description": "自動背景切り抜き、背景色の変更、中国の規格に準拠した証明写真の生成。",
+    "preview.import_hint": "上の「画像をインポート」をクリックするか、ここをクリックして画像を選択してください",
+    "preview.feature_description": "機能説明",
+    "preview.system_requirements": "システム要件:",
+    "preview.minimum_requirements": "最小構成",
+    "preview.recommended_requirements": "推奨構成",
+    "preview.memory": "メモリ",
+    "preview.cpu_cores": "{count}コア",
+    "preview.memory_gb": "{count}GB",
 }

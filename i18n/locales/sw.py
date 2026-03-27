@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Gradienti ya Kituo (Nyeupe)",
     "id_photo.face_detect_fast": "Hali ya Haraka",
     "id_photo.face_detect_high_accuracy": "Hali ya Usahihi wa Juu",
+    "module.id_photo.description": "Kuondoa mandharinyuma kiotomatiki, kubadilisha rangi ya mandharinyuma, na kutengeneza picha rasmi za utambulisho (zinazoendana na viwango vya China).",
+    "preview.import_hint": "Bofya \"Leta Picha\" hapo juu au bofya hapa kuchagua picha",
+    "preview.feature_description": "Maelezo ya Kipengele",
+    "preview.system_requirements": "Mahitaji ya Mfumo:",
+    "preview.minimum_requirements": "Mahitaji ya chini",
+    "preview.recommended_requirements": "Mapendekezo ya mfumo",
+    "preview.memory": "Kumbukumbu",
+    "preview.cpu_cores": "kiini {count}",
+    "preview.memory_gb": "{count} GB",
 }

@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "مرکزی گریڈینٹ (سفید)",
     "id_photo.face_detect_fast": "فاسٹ موڈ",
     "id_photo.face_detect_high_accuracy": "ہائی ایکیوریسی موڈ",
+    "module.id_photo.description": "خودکار پس منظر ہٹانا، پس منظر کا رنگ تبدیل کرنا، اور معیاری شناختی تصویر بنانا (چینی معیار کے مطابق)۔",
+    "preview.import_hint": "اوپر \"تصویر درآمد کریں\" پر کلک کریں یا تصویر منتخب کرنے کے لیے یہاں کلک کریں",
+    "preview.feature_description": "فیچر کی وضاحت",
+    "preview.system_requirements": "سسٹم کی ضروریات:",
+    "preview.minimum_requirements": "کم از کم ترتیب",
+    "preview.recommended_requirements": "تجویز کردہ ترتیب",
+    "preview.memory": "میموری",
+    "preview.cpu_cores": "{count} کور",
+    "preview.memory_gb": "{count} جی بی",
 }

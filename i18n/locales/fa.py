@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "گرادیان مرکز (سفید)",
     "id_photo.face_detect_fast": "حالت سریع",
     "id_photo.face_detect_high_accuracy": "حالت دقت بالا",
+    "module.id_photo.description": "حذف خودکار پس‌زمینه، تغییر رنگ پس‌زمینه و ایجاد عکس پرسنلی استاندارد (مطابق با استانداردهای چین).",
+    "preview.import_hint": "روی «وارد کردن تصویر» در بالا کلیک کنید یا برای انتخاب تصویر اینجا کلیک کنید",
+    "preview.feature_description": "توضیح قابلیت",
+    "preview.system_requirements": "نیازمندی‌های سیستم:",
+    "preview.minimum_requirements": "حداقل پیکربندی",
+    "preview.recommended_requirements": "پیکربندی پیشنهادی",
+    "preview.memory": "حافظه",
+    "preview.cpu_cores": "{count} هسته",
+    "preview.memory_gb": "{count} گیگابایت",
 }

@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Chuyển sắc trung tâm (trắng)",
     "id_photo.face_detect_fast": "Chế độ nhanh",
     "id_photo.face_detect_high_accuracy": "Chế độ độ chính xác cao",
+    "module.id_photo.description": "Tự động tách nền, thay đổi màu nền và tạo ảnh thẻ tiêu chuẩn (theo tiêu chuẩn Trung Quốc).",
+    "preview.import_hint": "Nhấp vào \"Nhập ảnh\" ở trên hoặc nhấp vào đây để chọn một ảnh",
+    "preview.feature_description": "Mô tả tính năng",
+    "preview.system_requirements": "Yêu cầu hệ thống:",
+    "preview.minimum_requirements": "Cấu hình tối thiểu",
+    "preview.recommended_requirements": "Cấu hình đề xuất",
+    "preview.memory": "Bộ nhớ",
+    "preview.cpu_cores": "{count} lõi",
+    "preview.memory_gb": "{count} GB",
 }

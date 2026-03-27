@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Degradado central (blanco)",
     "id_photo.face_detect_fast": "Modo rápido",
     "id_photo.face_detect_high_accuracy": "Modo de alta precisión",
+    "module.id_photo.description": "Eliminación automática del fondo, cambio del color de fondo y generación de fotos de identificación estándar (según las normas de China).",
+    "preview.import_hint": "Haz clic en \"Importar imagen\" arriba o aquí para seleccionar una imagen",
+    "preview.feature_description": "Descripción de la función",
+    "preview.system_requirements": "Requisitos del sistema:",
+    "preview.minimum_requirements": "Configuración mínima",
+    "preview.recommended_requirements": "Configuración recomendada",
+    "preview.memory": "Memoria",
+    "preview.cpu_cores": "{count} núcleos",
+    "preview.memory_gb": "{count} GB",
 }

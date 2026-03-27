@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Zentraler Verlauf (Weiß)",
     "id_photo.face_detect_fast": "Schnellmodus",
     "id_photo.face_detect_high_accuracy": "Modus hoher Genauigkeit",
+    "module.id_photo.description": "Automatische Hintergrundentfernung, Hintergrundfarbwechsel und Erstellung standardisierter Passfotos (nach chinesischen Standards).",
+    "preview.import_hint": "Klicken Sie oben auf \"Bild importieren\" oder hier, um ein Bild auszuwählen",
+    "preview.feature_description": "Funktionsbeschreibung",
+    "preview.system_requirements": "Systemanforderungen:",
+    "preview.minimum_requirements": "Mindestanforderungen",
+    "preview.recommended_requirements": "Empfohlene Konfiguration",
+    "preview.memory": "Arbeitsspeicher",
+    "preview.cpu_cores": "{count} Kerne",
+    "preview.memory_gb": "{count} GB",
 }

@@ -251,4 +251,13 @@ MESSAGES = {
     "id_photo.render_center_gradient": "Centraal verloop (wit)",
     "id_photo.face_detect_fast": "Snelle modus",
     "id_photo.face_detect_high_accuracy": "Modus hoge nauwkeurigheid",
+    "module.id_photo.description": "Automatisch de achtergrond verwijderen, de achtergrondkleur wijzigen en standaard pasfoto's genereren (volgens Chinese normen).",
+    "preview.import_hint": "Klik hierboven op \"Afbeelding importeren\" of klik hier om een afbeelding te kiezen",
+    "preview.feature_description": "Functiebeschrijving",
+    "preview.system_requirements": "Systeemvereisten:",
+    "preview.minimum_requirements": "Minimale vereisten",
+    "preview.recommended_requirements": "Aanbevolen configuratie",
+    "preview.memory": "Geheugen",
+    "preview.cpu_cores": "{count} kernen",
+    "preview.memory_gb": "{count} GB",
 }
