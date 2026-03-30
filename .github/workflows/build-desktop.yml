@@ -1,0 +1,59 @@
+name: Build Desktop App
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          brew update
+          brew install create-dmg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build portable app
+        run: python scripts/build_ci.py
+
+      - name: Create zipped portable artifact
+        run: python scripts/package_artifact.py
+
+      - name: Create unsigned DMG
+        run: |
+          mkdir -p artifacts/dmg
+          create-dmg \
+            --volname "Kunqiong ID Photo" \
+            --window-pos 200 120 \
+            --window-size 800 500 \
+            --icon-size 100 \
+            --app-drop-link 620 240 \
+            "artifacts/dmg/kunqiong-id-photo-macos.dmg" \
+            "dist/kunqiong-id-photo.app"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-build-macos
+          path: artifacts
+          if-no-files-found: error
